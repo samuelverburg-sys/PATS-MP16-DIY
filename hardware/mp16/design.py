@@ -388,11 +388,13 @@ NETCLASSES = {
     'Usb': (0.2, ['USB_DP', 'USB_DN']),
     'Ground': (0.3, ['GND']),
 }
+# Freerouting does not honour the class split on this board (the power stage got every net), so power and
+# the rest route together after the escapes; tools/finish.py joins what is left.
 ROUTE_STAGES = [
     ('escape', ['Fine', 'Medium', 'Usb']),
-    ('power', ['Power']),
-    ('rest', ['Default']),
+    ('rest', ['Power', 'Default']),
 ]
+ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
 GND_FANOUT = True
 GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground pads to the top pour

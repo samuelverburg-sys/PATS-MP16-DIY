@@ -371,7 +371,7 @@ def freerouting(board, ignore, tag, edit=None):
     # No post-route optimisation: '-mt 0' alone does not turn it off (it still ran with 3 threads on a
     # fully routed stage). Multi-threaded, it made results differ from run to run, and on the UI board
     # it ran past the time limit, losing a complete routing.
-    cmd = [JAVA, '-jar', FREEROUTING, '-de', dsn, '-do', ses, '-mp', os.environ.get('ROUTE_PASSES', '30'),
+    cmd = [JAVA, '-jar', FREEROUTING, '-de', dsn, '-do', ses, '-mp', os.environ.get('ROUTE_PASSES', str(getattr(design, 'ROUTE_PASSES', 30))),
            '-mt', '0', '--router.optimizer.enabled=false',
            '--gui.enabled=false', '--usage_and_diagnostic_data.disable_analytics=true']
     if ignore:
@@ -400,7 +400,7 @@ def route():
            'design': buildlog.sha(os.path.join(HERE, 'design.py')), 'stages': [],
            'settings': buildlog.settings(
                design, float(os.environ.get('ROUTE_CLEARANCE_MARGIN', getattr(design, 'ROUTE_CLEARANCE_MARGIN', 0.02))),
-               int(os.environ.get('ROUTE_PASSES', '30')), int(os.environ.get('ROUTE_TIMEOUT', '900')), FREEROUTING)}
+               int(os.environ.get('ROUTE_PASSES', str(getattr(design, 'ROUTE_PASSES', 30)))), int(os.environ.get('ROUTE_TIMEOUT', '900')), FREEROUTING)}
     t0, ok = time.time(), False
     try:
         ok = _route(rec)
