@@ -18,6 +18,7 @@ When the PATS pipeline improves, bring changes over file by file and note them b
 | `tools/pcb.py` | `design.HIDE_REFS`: references to hide outright | parts a label names in words (BOOT, RESET) |
 | `build.py` | `design.ROUTE_PASSES` (default 30) | Freerouting stops after that many passes and returns its best result instead of timing out |
 | `tools/finish.py` | prints each net it joins or cannot join; rip-up time budget per net (`FINISH_RIPUP_SECONDS`, default 90) | on this board a stuck net kept the finish searching for over 40 minutes, silently |
+| `tools/finish.py` | vias (stitching, joins) keep the hole clearance from bare NPTH holes with their copper ring, not only their drill | stitching vias landed 0.1-0.23 mm from key-socket holes (rule 0.25) |
 | `tools/xray.sh` | new | bottom parts seen from above, in the design frame |
 | `tools/where.py` | new | courtyard boxes and overlaps in the design frame |
 | `tools/stl_openings.py` | new | finds the enclosure's wall openings from the STLs |

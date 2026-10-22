@@ -189,6 +189,7 @@ def build_blocks(grid, all_shapes, holes, net, width=TRACK_W):
     for h in holes:
         grid.mark(vblk, h, VIA_DRILL / 2 + 0.25)  # hole to hole
         if h.net == NPTH:  # no copper ring to keep tracks off a bare hole: hole clearance
+            grid.mark(vblk, h, VIA_D / 2 + 0.25 + 0.03)  # a via's copper ring too (0.03: grid rounding)
             grid.mark(blk[F], h, width / 2 + 0.25)
             grid.mark(blk[B], h, width / 2 + 0.25)
     from fanout import keepouts
