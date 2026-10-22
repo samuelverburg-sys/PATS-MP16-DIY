@@ -142,8 +142,8 @@ add('J2', 'Connector_Generic:Conn_01x04', 'Connector_PinSocket_2.54mm:PinSocket_
     'OLED SSD1306 I2C', {'1': 'GND', '2': '+3V3', '3': 'I2C_SCL', '4': 'I2C_SDA'},
     (41.91, 25.653), 270, 'F', block='connectors',
     note='as the rev-1 board: pins at y 25.653, left to right SDA SCL VCC GND, module (HS96L03W2C03) above')
-res0402('R4', '4.7k', 'I2C_SDA', '+3V3', (44.6, 19.6), 90, block='connectors')
-res0402('R5', '4.7k', 'I2C_SCL', '+3V3', (45.6, 19.6), 90, block='connectors')
+res0402('R4', '4.7k', 'I2C_SDA', '+3V3', (45.6, 21.6), 90, block='connectors')
+res0402('R5', '4.7k', 'I2C_SCL', '+3V3', (46.6, 21.6), 270, block='connectors')
 
 # ---------------------------------------------------------------------------
 # RP2040 (QFN-56, 0.4 mm), W25Q128JV flash, 12 MHz crystal: the Raspberry Pi minimal design
@@ -173,45 +173,66 @@ rp.update({
     '51': 'QSPI_SD3', '52': 'QSPI_SCLK', '53': 'QSPI_SD0', '54': 'QSPI_SD2', '55': 'QSPI_SD1', '56': 'QSPI_SS',
     '57': 'GND',
 })
-RP = (38.4, 16.0)
+RP = (34.6, 15.6)
+
+
+def rp_pin(n):
+    """Centre of RP2040 pin n seen from above (the part is on the bottom, so its footprint is mirrored):
+    pins 1-14 down the right side, 15-28 right to left along the bottom, 29-42 up the left side,
+    43-56 left to right along the top; 0.4 mm pitch, pin rows 3.4 mm from the centre."""
+    x, y = RP
+    if n <= 14:
+        return (round(x + 3.4, 3), round(y - 2.6 + (n - 1) * 0.4, 3))
+    if n <= 28:
+        return (round(x + 2.6 - (n - 15) * 0.4, 3), round(y + 3.4, 3))
+    if n <= 42:
+        return (round(x - 3.4, 3), round(y + 2.6 - (n - 29) * 0.4, 3))
+    return (round(x - 2.6 + (n - 43) * 0.4, 3), round(y - 3.4, 3))
+
+
 add('U10', 'MCU_RaspberryPi:RP2040', 'Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm', 'RP2040', rp,
     RP, 0, 'B', block='mcu', mpn='RP2040', lcsc='C2040')
-# Decoupling: one 100 nF per IOVDD pin, on the side of that pin; 1 uF on VREG_IN and VREG_VOUT.
-cap0402('C30', '100n', '+3V3', 'GND', (43.0, 13.6), 90, block='mcu', note='IOVDD pin 1')
-cap0402('C31', '100n', '+3V3', 'GND', (43.0, 17.2), 90, block='mcu', note='IOVDD pin 10')
-cap0402('C32', '100n', '+3V3', 'GND', (34.6, 21.8), 0, block='mcu', note='IOVDD pin 22')
-cap0402('C33', '100n', '+3V3', 'GND', (33.6, 17.4), 90, block='mcu', note='IOVDD pin 33')
-cap0402('C34', '100n', '+3V3', 'GND', (33.6, 13.6), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD')
-cap0402('C35', '100n', '+3V3', 'GND', (39.3, 10.5), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
-cap0402('C36', '1u', '+3V3', 'GND', (34.4, 10.5), 90, block='mcu', note='VREG_IN')
-cap0402('C37', '1u', 'VDD_CORE', 'GND', (35.6, 10.5), 90, block='mcu', note='VREG_VOUT')
-cap0402('C38', '100n', 'VDD_CORE', 'GND', (34.6, 20.6), 0, block='mcu', note='DVDD pin 23')
-cap0402('C39', '100n', 'VDD_CORE', 'GND', (40.5, 10.5), 90, block='mcu', note='DVDD pin 50')
+# Decoupling: one 100 nF per IOVDD pin, 1 uF on VREG_IN and VREG_VOUT. Each capacitor sits 1.9 mm out from
+# its pin row, opposite its pin, so the signal pins between them keep a free way out (route 3 walled pins
+# in with capacitors touching the pin rows). Upright (rot 90) on the sides, a 1.2 mm-pitch row on top.
+TOP_Y = 10.15  # the row between USB-C (its body ends at y 9.2) and the RP2040
+cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1')
+cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10')
+cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, block='mcu', note='IOVDD pin 33')
+cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD')
+cap0402('C37', '1u', 'VDD_CORE', 'GND', (31.4, TOP_Y), 90, block='mcu', note='VREG_VOUT')
+cap0402('C36', '1u', '+3V3', 'GND', (32.6, TOP_Y), 90, block='mcu', note='VREG_IN')
+cap0402('C35', '100n', '+3V3', 'GND', (34.2, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
+cap0402('C39', '100n', 'VDD_CORE', 'GND', (35.4, TOP_Y), 90, block='mcu', note='DVDD pin 50')
+cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22')
+cap0402('C38', '100n', 'VDD_CORE', 'GND', (rp_pin(23)[0] - 1.2, rp_pin(23)[1] + 2.2), 90, block='mcu', note='DVDD pin 23')
 
+# Flash right of the RP2040's QSPI corner (pins 51-56, top right), pins facing it.
 add('U11', 'Memory_Flash:W25Q128JVS', 'Package_SO:SOIC-8_5.23x5.23mm_P1.27mm', 'W25Q128JV',
     {'1': 'QSPI_SS', '2': 'QSPI_SD1', '3': 'QSPI_SD2', '4': 'GND', '5': 'QSPI_SD0', '6': 'QSPI_SCLK',
-     '7': 'QSPI_SD3', '8': '+3V3'}, (49.0, 16.5), 90, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
+     '7': 'QSPI_SD3', '8': '+3V3'}, (44.0, 15.6), 90, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
     note='16 MB; Arduino: Generic RP2040, boot2 W25Q080 QSPI /2')
-cap0402('C40', '100n', '+3V3', 'GND', (45.2, 10.2), 0, block='mcu')
+cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 0, block='mcu')
 # BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low).
-res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (44.8, 15.0), 90, block='mcu')
+res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (38.8, TOP_Y), 90, block='mcu')
 add('SW18', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'BOOT', {'1': 'BOOT_BTN', '2': 'GND'},
     (28.6, 26.5), 90, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443',
     note='reachable through the window of the open bottom shell')
 add('SW19', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'RESET', {'1': 'RUN', '2': 'GND'},
     (23.4, 26.5), 90, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443')
-res0402('R11', '10k', 'RUN', '+3V3', (37.5, 23.3), 0, block='mcu')
+res0402('R11', '10k', 'RUN', '+3V3', (31.8, rp_pin(26)[1] + 2.2), 90, block='mcu')
 
 # 12 MHz crystal, as the Raspberry Pi design: 1 k series on XOUT, 15 pF loads (ABM8-272-T3, CL 10 pF).
+# Under the RP2040's right half, below XIN/XOUT (pins 20, 21).
 add('Y1', 'Device:Crystal_GND24', 'Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm', '12MHz',
-    {'1': 'XIN', '2': 'GND', '3': 'XTAL_OUT', '4': 'GND'}, (40.6, 22.0), 0, 'B', block='mcu',
+    {'1': 'XIN', '2': 'GND', '3': 'XTAL_OUT', '4': 'GND'}, (38.6, 21.6), 0, 'B', block='mcu',
     mpn='Abracon ABM8-272-T3', lcsc='C20625731', note='12 MHz, CL 10 pF, approved by Abracon for the RP2040')
-res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (37.5, 22.2), 0, block='mcu')
-cap0402('C41', '15p', 'XIN', 'GND', (43.2, 22.4), 90, block='mcu')
-cap0402('C42', '15p', 'XTAL_OUT', 'GND', (37.5, 21.0), 0, block='mcu')
+res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 90, block='mcu')
+cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu')
+cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu')
 
 # SWD test pads (debug probe), next to RESET.
-for k, (net, x) in enumerate([('SWCLK', 26.2), ('SWDIO', 28.4), ('GND', 30.6)]):
+for k, (net, x) in enumerate([('SWCLK', 25.8), ('SWDIO', 28.0), ('GND', 30.2)]):
     add(f'TP{k + 1}', 'Connector:TestPoint', 'TestPoint:TestPoint_Pad_D1.0mm', net, {'1': net},
         (x, 22.6), 0, 'B', block='mcu', note='SWD')
 
@@ -231,8 +252,8 @@ add('F1', 'Device:Polyfuse', 'Fuse:Fuse_1206_3216Metric', '1.5A hold', {'1': 'VB
 add('U12', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'USB_DP', '6': 'USB_DP', '3': 'USB_DN', '4': 'USB_DN', '2': 'GND', '5': 'VBUS'},
     (46.0, 7.2), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C7519')
-res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (38.0, 10.5), 90, block='mcu', note='USB series, RP2040 design guide')
-res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (37.0, 10.5), 90, block='mcu')
+res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (37.6, TOP_Y), 90, block='mcu', note='USB series, RP2040 design guide')
+res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (36.6, TOP_Y), 90, block='mcu')
 
 # ---------------------------------------------------------------------------
 # Charger + power path: BQ24074 (as the PATS audio board), USB in, VSYS out, 1S LiPo.
@@ -404,6 +425,7 @@ GND_FANOUT = True
 GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground pads to the top pour
 GND_STITCH = 4.0
 DECOUPLED = {'VDD_CORE', 'VBAT_GAUGE'}
+ESCAPE = ['U10']  # locked escape stubs out of the RP2040's 0.4 mm pin field before routing (tools/fanout.py)
 SILK = []
 # Silkscreen labels (tools/silk.py): (text or alternatives, near (x, y), sides, height mm, rotation, may move
 # along[, how far]). The two buttons sit side by side in the open bottom shell's window, each named on the
