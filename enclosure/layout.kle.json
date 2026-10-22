@@ -1,0 +1,79 @@
+[
+  [
+    {
+      "y": 0.25,
+      "fa": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "vel-\n\nvel+\n\n\n\n\n\n\n\nLoad Slot",
+    {
+      "x": 2,
+      "a": 7
+    },
+    "SHIFT"
+  ],
+  [
+    {
+      "y": -0.865,
+      "x": 1.385,
+      "c": "#000000",
+      "t": "#cccccc",
+      "w": 1.25,
+      "h": 0.75
+    },
+    ""
+  ],
+  [
+    {
+      "y": 0.11499999999999999,
+      "c": "#cccccc",
+      "t": "#8f8f8f",
+      "a": 4,
+      "fa": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "1\n\n\n\n\n\n\n\n\nRoot",
+    "2\n\n\n\n\n\n\n\n\nScale",
+    "3\n\n\n\n\n\n\n\n\nDegree",
+    "4\n\n\n\n\n\n\n\n\nNotes"
+  ],
+  [
+    "5\n\n\n\n\n\n\n\n\nVelocity Random",
+    "6\n\n\n\n\n\n\n\n\nVelocity",
+    "7\n\n\n\n\n\n\n\n\nIntervals",
+    "8\n\n\n\n\n\n\n\n\nOctaves"
+  ],
+  [
+    "9",
+    "10",
+    "11",
+    "12"
+  ],
+  [
+    "13",
+    "14\n\n\n\n\n\n\n\n\nCopy",
+    "15\n\n\n\n\n\n\n\n\nMIDI",
+    "16\n\n\n\n\n\n\n\n\nSave Slot"
+  ]
+]
