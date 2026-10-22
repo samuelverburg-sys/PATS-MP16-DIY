@@ -1,0 +1,11 @@
+*/build/
+*/fp-lib-table
+*/*-backups/
+*/fp-info-cache
+*/*.kicad_prl
+_autosave-*
+~*.lck
+__pycache__/
+# Intermediate fab outputs: the zip and the -cpl.csv made from them are what is committed and ordered
+*/fab/gerbers/
+*/fab/pos.csv

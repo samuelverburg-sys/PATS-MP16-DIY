@@ -40,12 +40,17 @@ Rev 1 pins are kept wherever the function still exists, so the rev-1 and rev-2 b
 | GP18 | SR_CLK | SPI0 SCK -> 74HC165 CP and expansion 74HC595 SRCLK | rev 1: matrix |
 | GP19 | EXP_MOSI | SPI0 TX -> expansion 74HC595 SER | new |
 | GP20 | EXP_LATCH | expansion 74HC595 RCLK | new |
-| GP21 | CHG_N | BQ24074 /CHG (charging) | new |
 | GP22 | PGOOD_N | BQ24074 /PGOOD (USB power present) | new |
 | GP26-29 | AIN1-4 | ADC0-3 -> expansion header | GP26 was matrix row 3 |
-| GP3, 8-15, 23-25 | spare | test pads | |
+| GP3, 8-15, 21, 23-25 | spare | not connected | |
 
-The encoder push and Shift go through the 74HC165 chain, as on the UI board.
+The encoder push and Shift go through the 74HC165 chain, as on the UI board. Chain order (nearest the
+RP2040 first): U3 (Shift, encoder push, 6 spares; top band), U1 (pads 1-8; between key rows 1 and 2),
+U2 (pads 9-16; between rows 3 and 4). `scripts/check-pins.py` checks `board_pins.h` against `design.py`.
+
+Charging state comes from the MAX17048 fuel gauge, not from the charger's /CHG pin: /CHG drives the
+charge LED from USB power, and a wire from it to a GPIO would feed the switched-off RP2040 through the
+LED.
 
 ## Board layout constraints
 

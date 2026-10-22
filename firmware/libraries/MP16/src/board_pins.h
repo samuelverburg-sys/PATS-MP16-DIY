@@ -6,6 +6,8 @@
 // or forced with -DMP16_BOARD_REV=1 / 2 (arduino-cli --build-property "build.extra_flags=...").
 #pragma once
 
+#include <stdint.h>
+
 #ifndef MP16_BOARD_REV
 #if defined(ARDUINO_WAVESHARE_RP2040_ZERO)
 #define MP16_BOARD_REV 1
@@ -42,18 +44,21 @@ constexpr int kShiftRegLoad = 17;  // 74HC165 /PL, all chips
 constexpr int kShiftRegClock = 18; // 74HC165 CP, all chips; also clocks the expansion 74HC595
 constexpr int kExpansionData = 19; // expansion header: 74HC595 SER (analog mux select)
 constexpr int kExpansionLatch = 20;// expansion header: 74HC595 RCLK
-constexpr int kChargingN = 21;     // BQ24074 /CHG: low while the battery charges
 constexpr int kPowerGoodN = 22;    // BQ24074 /PGOOD: low while USB power is present
 constexpr int kAnalogIn[4] = { 26, 27, 28, 29 };  // expansion header AIN1-4 (ADC0-3)
+// Charging state comes from the MAX17048 fuel gauge (I2C 0x36), not a pin: the charger's /CHG drives
+// the charge LED from USB power and must not reach the RP2040 (it would feed it while switched off).
+constexpr uint8_t kFuelGaugeAddress = 0x36;
 
 // Bit positions in the 24 bits read from the 74HC165 chain, first bit read = bit 23.
-// U1 (pads 1-8) is nearest the RP2040, so its D7 comes out first; then U2 (pads 9-16), then U3.
-// Input Dn of a chip comes out as bit (base + n). All inputs are low while pressed.
+// Chain (hardware/mp16/design.py): U3 (Shift, encoder push, spares) is nearest the RP2040, then U1
+// (pads 1-8, between key rows 1 and 2), then U2 (pads 9-16, between rows 3 and 4).
+// Input Dn of U3 comes out as bit 16 + n, of U1 as 8 + n, of U2 as n. All inputs are low while pressed.
 constexpr int kShiftRegBits = 24;
-constexpr int kSrPadBit[16] = { 16, 17, 18, 19, 20, 21, 22, 23,   // U1 D0-D7: pads 1-8
-                                8, 9, 10, 11, 12, 13, 14, 15 };   // U2 D0-D7: pads 9-16
-constexpr int kSrShiftBit = 0;          // U3 D0
-constexpr int kSrEncoderSwitchBit = 1;  // U3 D1
+constexpr int kSrPadBit[16] = { 8, 9, 10, 11, 12, 13, 14, 15,   // U1 D0-D7: pads 1-8
+                                0, 1, 2, 3, 4, 5, 6, 7 };       // U2 D0-D7: pads 9-16
+constexpr int kSrShiftBit = 16;          // U3 D0
+constexpr int kSrEncoderSwitchBit = 17;  // U3 D1
 #else
 #error "MP16_BOARD_REV must be 1 or 2"
 #endif

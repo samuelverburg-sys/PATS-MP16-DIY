@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "PATS")(type "KiCad")(uri "${KIPRJMOD}/../lib/PATS.pretty")(options "")(descr "PATS carrier footprints (see hardware/THIRD_PARTY.md)"))
+)

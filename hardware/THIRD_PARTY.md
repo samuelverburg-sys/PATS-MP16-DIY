@@ -1,0 +1,11 @@
+# Third-party material in `pats-core/hardware/`
+
+| Item | Used for | Licence | Notes |
+|---|---|---|---|
+| KiCad symbol and footprint libraries (gitlab.com/kicad/libraries) | All symbols; most footprints; `LED_SK6812MINI-E_3.2x2.8mm_P1.5mm_ReverseMount` copied from the current library and converted to the KiCad 7 format; `ESP32-S3-WROOM-1_ThermalVias0.3` = KiCad's `RF_Module:ESP32-S3-WROOM-1` with its 12 thermal-via drills changed from 0.2 to 0.3 mm | CC-BY-SA 4.0 with the KiCad library exception (designs using the libraries are not affected) | Converted with `tools/fp_downgrade.py`, geometry unchanged |
+| MX_V2 by ai03 (github.com/ai03-2725/MX_V2), Copyright (c) 2017 ai03 | `MX-Hotswap-1U` (Cherry MX switch with Kailh CPG151101S11 hot-swap socket), since 2026-10-18; replaced marbastlib's `SW_MX_HS_CPG151101S11_1u` | MIT | Converted to the KiCad 7 format with `tools/fp_downgrade.py` (3D model reference dropped), geometry unchanged; a description line added; licence text in `lib/licenses/MX_V2-LICENSE.txt`. The library draws the socket side on top: it is placed flipped onto the bottom |
+| PATS MP-16 (RP2040) EasyEDA board, the user's own design | `SW_SPDT_MK-12C02-G015`, `JST_PH_S2B-PH-K-S_Horizontal`, `RotaryEncoder_Bourns_PEC11R-4215F-S0024`, `Jack_3.5mm_PJ-320-3P-SMT` (pads converted by `tools/easyeda_fp.py`; jack pads renamed A/B/C -> S/R/T), board outline, mounting holes, OLED and encoder positions, LCSC part numbers | The user's own | The schematic in `reference/`; the board file in git history (071c182) and upstream (MP16-DIY-Kit) |
+| tscircuit/ti BQ24074 reference subcircuit | Cross-check of the BQ24074 configuration (EN1/EN2/CE/TMR wiring, ITERM/ILIM values) | No licence file found | Values only (they match TI's typical application); no code used |
+| Datasheets (not redistributed): Everest ES8389 rev 1.0 (marked confidential), Analog Devices MAX17048 | `lib/PATS.kicad_sym` (ES8389, MAX17048 symbols) and `QFN-24-1EP_3x3mm_P0.35mm_EP1.7x1.7mm`, written by `tools/make_lib.py` from the pinout and package tables | Our own work | Only derived pin tables and pad geometry are committed, never the datasheets |
+
+Tools used to build, not distributed: KiCad 7 (GPL-3.0), Freerouting 2.5 (GPL-3.0), OpenJDK.

@@ -1,0 +1,341 @@
+{
+  "board": {
+    "design_settings": {
+      "defaults": {
+        "board_outline_line_width": 0.1,
+        "copper_line_width": 0.2
+      },
+      "rules": {
+        "min_clearance": 0.13,
+        "min_track_width": 0.127,
+        "min_via_diameter": 0.6,
+        "min_through_hole_diameter": 0.3,
+        "min_via_annular_width": 0.13,
+        "min_copper_edge_clearance": 0.3,
+        "min_hole_to_hole": 0.25,
+        "min_hole_clearance": 0.25,
+        "min_silk_clearance": 0.0,
+        "min_text_height": 0.8,
+        "min_text_thickness": 0.12,
+        "solder_mask_clearance": 0.05,
+        "solder_mask_min_width": 0.1
+      },
+      "track_widths": [
+        0.0,
+        0.25,
+        0.4,
+        0.6,
+        1.0
+      ],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        },
+        {
+          "diameter": 0.8,
+          "drill": 0.4
+        }
+      ]
+    }
+  },
+  "meta": {
+    "filename": "mp16.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.13,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Power",
+        "clearance": 0.13,
+        "track_width": 0.6,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Fine",
+        "clearance": 0.13,
+        "track_width": 0.15,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Ground",
+        "clearance": 0.13,
+        "track_width": 0.3,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Medium",
+        "clearance": 0.13,
+        "track_width": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Usb",
+        "clearance": 0.13,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      }
+    ],
+    "meta": {
+      "version": 3
+    },
+    "net_colors": null,
+    "netclass_assignments": null,
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "+3V3"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "BATT_P"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "SW_LED"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VBUS_IN"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VDD_CORE"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VLED"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "VSW"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "AIN1"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "AIN2"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "AIN3"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "AIN4"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "ENC_A"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "ENC_B"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "EXP_LATCH"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "EXP_MOSI"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "I2C_SCL"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "I2C_SDA"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "LED_DATA"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "MIDI_RX"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "MIDI_TX"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "PGOOD_N"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "QSPI_SCLK"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "QSPI_SD0"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "QSPI_SD1"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "QSPI_SD2"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "QSPI_SD3"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "QSPI_SS"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "RP_USB_DN"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "RP_USB_DP"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "RUN"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "SR_CLK"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "SR_DATA"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "SR_LOAD"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "SWCLK"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "SWDIO"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "XIN"
+      },
+      {
+        "netclass": "Fine",
+        "pattern": "XOUT"
+      },
+      {
+        "netclass": "Ground",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "VBAT"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "VBUS"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "VSYS"
+      },
+      {
+        "netclass": "Usb",
+        "pattern": "USB_DN"
+      },
+      {
+        "netclass": "Usb",
+        "pattern": "USB_DP"
+      }
+    ]
+  },
+  "pcbnew": {
+    "last_paths": {},
+    "page_layout_descr_file": ""
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [],
+  "text_variables": {}
+}

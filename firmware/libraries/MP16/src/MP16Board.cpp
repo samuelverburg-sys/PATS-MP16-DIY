@@ -32,8 +32,7 @@ bool Board::begin() {
   pinMode(pins::kExpansionLatch, OUTPUT);
   digitalWrite(pins::kExpansionData, LOW);
   digitalWrite(pins::kExpansionLatch, LOW);
-  pinMode(pins::kChargingN, INPUT_PULLUP);  // open-drain outputs of the BQ24074
-  pinMode(pins::kPowerGoodN, INPUT_PULLUP);
+  pinMode(pins::kPowerGoodN, INPUT_PULLUP);  // open-drain output of the BQ24074
 #endif
 
   // Rev 2 has 10k pull-ups and RC filters on the board; rev 1 relies on the internal pull-ups.
@@ -123,12 +122,37 @@ int Board::takeEncoderQuarterSteps() {
   return q;
 }
 
-bool Board::isCharging() const {
+// MAX17048 registers (datasheet "Register Summary"): 16-bit, MSB first.
+static constexpr uint8_t kGaugeSoc = 0x04;    // state of charge, 1/256 %
+static constexpr uint8_t kGaugeCrate = 0x16;  // charge rate, signed, 0.208 %/hour per bit
+
+bool Board::readGauge(uint8_t reg, uint16_t& value) {
 #if MP16_BOARD_REV >= 2
-  return digitalRead(pins::kChargingN) == LOW;
+  Wire.beginTransmission(pins::kFuelGaugeAddress);
+  Wire.write(reg);
+  if (Wire.endTransmission(false) != 0) return false;
+  if (Wire.requestFrom(pins::kFuelGaugeAddress, (uint8_t)2) != 2) return false;
+  value = (uint16_t)(Wire.read() << 8);
+  value |= (uint16_t)Wire.read();
+  return true;
 #else
+  (void)reg;
+  (void)value;
   return false;
 #endif
+}
+
+int Board::batteryPercent() {
+  uint16_t soc;
+  if (!readGauge(kGaugeSoc, soc)) return -1;
+  int percent = soc >> 8;
+  return percent > 100 ? 100 : percent;
+}
+
+bool Board::isCharging() {
+  uint16_t crate;
+  if (!isUsbPowered() || !readGauge(kGaugeCrate, crate)) return false;
+  return (int16_t)crate > 0;
 }
 
 bool Board::isUsbPowered() const {

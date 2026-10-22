@@ -47,10 +47,11 @@ class Board {
   int takeEncoderDetents();
   int takeEncoderQuarterSteps();
 
-  // Battery and charger (rev 2 only; rev 1 reports no USB power information).
-  bool hasChargerStatus() const { return MP16_BOARD_REV >= 2; }
-  bool isCharging() const;
-  bool isUsbPowered() const;
+  // Battery (rev 2 only: the MAX17048 fuel gauge and the charger's /PGOOD; rev 1 has neither).
+  bool hasBatteryInfo() const { return MP16_BOARD_REV >= 2; }
+  int batteryPercent();       // 0-100, or -1 when unknown (rev 1, no gauge answer)
+  bool isCharging();          // USB present and the battery's charge rate is positive
+  bool isUsbPowered() const;  // USB power present (BQ24074 /PGOOD)
 
   static constexpr int revision() { return MP16_BOARD_REV; }
 
@@ -59,6 +60,7 @@ class Board {
 
  private:
   bool readKeys(bool padsDown[16], bool& shiftDown, bool& encoderDown);
+  bool readGauge(uint8_t reg, uint16_t& value);
 
   Button pads_[16];
   Button shift_;
