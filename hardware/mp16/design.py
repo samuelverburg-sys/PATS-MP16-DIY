@@ -102,7 +102,8 @@ cap0402('C20', '10n', 'ENC_B', 'GND', (11.6, 24.0), 0, block='input')
 # ---------------------------------------------------------------------------
 # Switch inputs: 3x 74HC165 (TSSOP-16), each next to the keys it reads.
 #   U1: pads 1-8, between key rows 1 and 2.   U2: pads 9-16, between rows 3 and 4.
-#   U3: Shift, encoder push, 6 spares; in the top band next to the RP2040.
+#   U3: Shift, encoder push, 6 spares; between key rows 1 and 2 left of U1. (It started next to the
+#   RP2040; there it walled in the RP2040's GPIO16-29 side: route 2 left SR_*, EXP_*, ENC_*, RUN open.)
 # Chain: U2 Q7 -> U1 DS, U1 Q7 -> U3 DS, U3 Q7 -> SR_DATA (GPIO16). U2 DS = GND.
 # Bits read (first = bit 23): U3 D7..D0, U1 D7..D0, U2 D7..D0 (board_pins.h, kSrPadBit).
 # ---------------------------------------------------------------------------
@@ -116,7 +117,7 @@ d_pins = {'D0': '11', 'D1': '12', 'D2': '13', 'D3': '14', 'D4': '3', 'D5': '4', 
 SR_PLACE = {  # chip centre, rotation; decoupling cap; the two pull-up packs (D0-D3, D4-D7), their rotation
     'U1': ((37.9, 47.0), 0, (38.1, 43.5), [(34.6, 41.0), (39.4, 41.0)], 90),
     'U2': ((37.9, 85.1), 0, (38.1, 81.6), [(34.6, 79.1), (39.4, 79.1)], 90),
-    'U3': ((28.8, 14.0), 90, (27.4, 8.6), [(27.0, 19.6), (30.8, 19.6)], 90),
+    'U3': ((18.0, 47.0), 0, (18.0, 43.5), [(15.6, 41.0), (20.0, 41.0)], 90),
 }
 rn = 1
 for k, (ref, ((ux, uy), urot, cxy, rn_xy, rn_rot)) in enumerate(SR_PLACE.items()):
