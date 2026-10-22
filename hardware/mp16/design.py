@@ -380,18 +380,21 @@ add('J6', 'Connector_Generic:Conn_02x06_Odd_Even', 'Connector_PinHeader_2.54mm:P
 for i, (x, y) in enumerate(MP16_HOLES):
     add(f'H{i + 1}', 'Mechanical:MountingHole', 'PATS:MountingHole_2.5mm', '2.5 mm', {}, (x, y), 0, 'F', block='mech')
 
-POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'VLED', '+3V3', 'SW_LED', 'VDD_CORE'}
+# Wide (0.6 mm) power nets. +3V3 and VDD_CORE are not among them: they carry < 100 mA and must reach the
+# RP2040's 0.2 mm pads (0.4 mm pitch), the 74HC165s' 0.65 mm pitch and 0402 parts; they are 'Supply' below.
+POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'VLED', 'SW_LED'}
 NETCLASSES = {
     # The RP2040's 0.4 mm-pitch pins: 0.15 mm tracks.
     'Fine': (0.15, sorted({n for n in rp.values() if n} - {'GND', '+3V3', 'VDD_CORE'})),
     'Medium': (0.4, ['VBUS', 'VSYS', 'VBAT']),  # the BQ24074's 0.5 mm-pitch power pins
     'Usb': (0.2, ['USB_DP', 'USB_DN']),
+    'Supply': (0.2, ['+3V3', 'VDD_CORE']),  # into fine-pitch pins; 0.2 mm carries far more than they need
     'Ground': (0.3, ['GND']),
 }
 # Freerouting does not honour the class split on this board (the power stage got every net), so power and
 # the rest route together after the escapes; tools/finish.py joins what is left.
 ROUTE_STAGES = [
-    ('escape', ['Fine', 'Medium', 'Usb']),
+    ('escape', ['Fine', 'Medium', 'Usb', 'Supply']),
     ('rest', ['Power', 'Default']),
 ]
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
@@ -418,5 +421,8 @@ HIDE_REFS = ['SW18', 'SW19', 'TP1', 'TP2', 'TP3']  # named by the labels above
 # - the MIDI Out jack's courtyard reaches into the Shift key's hot-swap socket outline: both at their rev-1
 #   positions (the enclosure needs them there); the nearest pads are 0.6 mm apart, as on the rev-1 board.
 DRC_ACCEPTED = [('courtyards_overlap', r'Footprint H\d+', r'Footprint SW\d+'),
-                ('courtyards_overlap', r'Footprint J5', r'Footprint SW1 '),
+                ('courtyards_overlap', r'Footprint J5\b', r'Footprint SW1\b'),
+                # power switch: rev-1 part and position (fixed); its shield pads sit 0.2 mm from the edge, as on
+                # the rev-1 board JLCPCB built (JLCPCB's minimum; 0.3 mm elsewhere on this board)
+                ('copper_edge_clearance', r'Edge\.Cuts', r'Pad SH \[GND\] of SW20\b'),
                 ('copper_edge_clearance', r'Arc on Edge\.Cuts', r'Pad \d \[[^\]]*\] of D(1[0-7]|[1-9]) ')]

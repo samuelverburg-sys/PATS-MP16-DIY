@@ -131,6 +131,23 @@
         "schematic_color": "rgba(0, 0, 0, 0.000)"
       },
       {
+        "name": "Supply",
+        "clearance": 0.13,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
         "name": "Usb",
         "clearance": 0.13,
         "track_width": 0.2,
@@ -156,10 +173,6 @@
     "netclass_patterns": [
       {
         "netclass": "Power",
-        "pattern": "+3V3"
-      },
-      {
-        "netclass": "Power",
         "pattern": "BATT_P"
       },
       {
@@ -169,10 +182,6 @@
       {
         "netclass": "Power",
         "pattern": "VBUS_IN"
-      },
-      {
-        "netclass": "Power",
-        "pattern": "VDD_CORE"
       },
       {
         "netclass": "Power",
@@ -317,6 +326,14 @@
       {
         "netclass": "Medium",
         "pattern": "VSYS"
+      },
+      {
+        "netclass": "Supply",
+        "pattern": "+3V3"
+      },
+      {
+        "netclass": "Supply",
+        "pattern": "VDD_CORE"
       },
       {
         "netclass": "Usb",

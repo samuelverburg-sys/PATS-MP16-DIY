@@ -13,6 +13,7 @@ VIA_D, VIA_DRILL, TRACK_W = 0.6, 0.3, 0.3
 LAYER = pcbnew.F_Cu
 GAP = 0.2  # copper clearance kept around the new via (> the board's 0.15 mm rule)
 TRACK_GAP = 0.155  # for the short fan-out tracks
+HOLE_GAP = 0.3  # via copper to a bare (NPTH) hole: the board's hole clearance is 0.25 mm
 SIBLING_W = 0.13  # track from a fine-pitch ground pin into the part's exposed pad
 
 
@@ -34,9 +35,13 @@ def _obstacles(board, net):
         for pad in fp.Pads():
             if pad.GetNetname() == net and pad.GetNetname():
                 continue
+            b = pad.GetBoundingBox()
+            if pad.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:  # bare holes (key sockets' pegs): hole clearance
+                grow = MM(HOLE_GAP - GAP)
+                out.append((b.Centre().x, b.Centre().y, b.GetWidth() / 2 + grow, b.GetHeight() / 2 + grow))
+                continue
             if not (pad.IsOnLayer(pcbnew.F_Cu) or pad.IsOnLayer(pcbnew.B_Cu)):
                 continue  # paste-only windows (exposed pads) are not copper
-            b = pad.GetBoundingBox()
             out.append((b.Centre().x, b.Centre().y, b.GetWidth() / 2, b.GetHeight() / 2))
     return out
 
