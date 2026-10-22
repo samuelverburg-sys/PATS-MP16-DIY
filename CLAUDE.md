@@ -50,8 +50,9 @@ Cloud sessions run `.claude/hooks/session-start.sh`, which calls both setup scri
   (`USBSTACK` in `scripts/build-firmware.sh`).
 - Keep both revisions building: `scripts/build-firmware.sh` with no arguments before committing firmware.
 - **Fixed positions (Samuel, 2026-10-22): never move** the key switches with their hot-swap sockets and
-  LEDs, the encoder, the OLED module (J2), the TRS jacks (J4, J5), the power switch (SW20) or USB-C (J3):
-  they must meet the enclosure and the plate. Everything else may be moved to make the board work.
+  LEDs, the encoder, the OLED module (J2), the TRS jacks (J4, J5), the power switch (SW20), USB-C (J3) or the
+  side-view charge LED (D20): they must meet the enclosure and the plate. Everything else may be moved
+  to make the board work, the battery plug (J7) included.
 - Hardware: change `design.py`, regenerate with `build.py`, never hand-edit the generated KiCad files.
   Ordering waits for the user's review; flashing a board is the user's step.
 - Arduino-IDE users must keep working without the CLI: sketches compile with the IDE when the

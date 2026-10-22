@@ -13,8 +13,8 @@ Sides: every machine-placed part is on the bottom (B), as on the rev-1 board, so
 side. Hand-soldered on top: encoder, OLED header, expansion header.
 
 FIXED POSITIONS (Samuel, 2026-10-22): the key switches with their sockets and LEDs, the encoder, the
-OLED module, the TRS jacks, the power switch and USB-C never move (enclosure and plate). Everything else
-may be moved to make the board work. The jacks, USB-C, power switch,
+OLED module, the TRS jacks, the power switch, USB-C and the side-view charge LED never move (enclosure and
+plate). Everything else may be moved to make the board work, the battery plug included. The jacks, USB-C, power switch,
 charge LED and battery plug sit exactly where rev 1 had them (pin_targets from the rev-1 board), so the
 existing enclosure fits.
 """
@@ -195,11 +195,11 @@ cap0402('C40', '100n', '+3V3', 'GND', (45.2, 10.2), 0, block='mcu')
 # BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low).
 res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (44.8, 15.0), 90, block='mcu')
 add('SW18', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'BOOT', {'1': 'BOOT_BTN', '2': 'GND'},
-    (54.8, 15.2), 0, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443',
+    (28.6, 26.5), 90, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443',
     note='reachable through the window of the open bottom shell')
 add('SW19', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'RESET', {'1': 'RUN', '2': 'GND'},
-    (28.8, 26.9), 0, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443')
-res0402('R11', '10k', 'RUN', '+3V3', (34.6, 23.0), 0, block='mcu')
+    (23.4, 26.5), 90, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443')
+res0402('R11', '10k', 'RUN', '+3V3', (37.5, 23.3), 0, block='mcu')
 
 # 12 MHz crystal, as the Raspberry Pi design: 1 k series on XOUT, 15 pF loads (ABM8-272-T3, CL 10 pF).
 add('Y1', 'Device:Crystal_GND24', 'Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm', '12MHz',
@@ -212,7 +212,7 @@ cap0402('C42', '15p', 'XTAL_OUT', 'GND', (37.5, 21.0), 0, block='mcu')
 # SWD test pads (debug probe), next to RESET.
 for k, (net, x) in enumerate([('SWCLK', 26.2), ('SWDIO', 28.4), ('GND', 30.6)]):
     add(f'TP{k + 1}', 'Connector:TestPoint', 'TestPoint:TestPoint_Pad_D1.0mm', net, {'1': net},
-        (x, 23.0), 0, 'B', block='mcu', note='SWD')
+        (x, 22.6), 0, 'B', block='mcu', note='SWD')
 
 # ---------------------------------------------------------------------------
 # USB-C (data + charging), centred on the top edge where the RP2040-Zero's socket was.
@@ -343,12 +343,12 @@ add('J4', 'Connector_Audio:AudioJack3', 'PATS:Jack_3.5mm_PJ-320-3P-SMT', 'MIDI I
 cap0402('C70', '100p', 'MIDI_IN_S', 'GND', (25.6, 2.3), 90, block='midi')
 res0402('R40', '220', 'MIDI_IN_R', 'MIDI_IN_A', (17.6, 13.5), 90, block='midi')
 add('D22', 'Device:D', 'Diode_SMD:D_SOD-123', '1N4148W', {'1': 'MIDI_IN_A', '2': 'MIDI_IN_T'},
-    (20.8, 13.5), 180, 'B', block='midi', mpn='1N4148W', lcsc='C81598')
+    (20.8, 13.4), 180, 'B', block='midi', mpn='1N4148W', lcsc='C81598')
 add('U19', 'PATS:TLP109', 'PATS:Toshiba_SO6-5P_TLP109', 'TLP109',
-    {'1': 'MIDI_IN_A', '3': 'MIDI_IN_T', '4': 'GND', '5': 'MIDI_RX', '6': '+3V3'}, (21.0, 20.0), 0, 'B',
+    {'1': 'MIDI_IN_A', '3': 'MIDI_IN_T', '4': 'GND', '5': 'MIDI_RX', '6': '+3V3'}, (21.0, 19.0), 0, 'B',
     block='midi', mpn='TLP109(TPL,E', lcsc='C406798', note='rev-1 part and position')
-res0402('R41', '2.2k', 'MIDI_RX', '+3V3', (21.4, 25.4), 0, block='midi')
-cap0402('C71', '100n', '+3V3', 'GND', (23.4, 25.4), 0, block='midi')
+res0402('R41', '2.2k', 'MIDI_RX', '+3V3', (17.8, 21.0), 90, block='midi')
+cap0402('C71', '100n', '+3V3', 'GND', (17.8, 18.0), 90, block='midi')
 
 # MIDI Out (TRS Type A, 3.3 V): ring <- 33 R <- +3V3, tip <- 10 R <- TX (MIDI 1.0 3.3 V values),
 # sleeve to ground. ESD: a USBLC6 clamps both lines at the jack.
@@ -399,7 +399,16 @@ GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground
 GND_STITCH = 4.0
 DECOUPLED = {'VDD_CORE', 'VBAT_GAUGE'}
 SILK = []
-LABELS = []
+# Silkscreen labels (tools/silk.py): (text or alternatives, near (x, y), sides, height mm, rotation, may move
+# along[, how far]). The two buttons sit side by side in the open bottom shell's window, each named on the
+# bottom beside it; the SWD pads above them.
+LABELS = [
+    ('RESET', (25.95, 26.5), 'B', 0.9, 90, 'y', 0.5),
+    ('BOOT', (31.15, 26.5), 'B', 0.9, 90, 'y', 0.5),
+    ('SWD', (28.4, 22.6), 'B', 0.7, 0, 'xy', 2.5),  # pads TP1-TP3 = SWCLK, SWDIO, GND (README)
+    (('PATS MP-16 rev 2', 'MP-16 rev 2'), (38.1, 102.0), 'B', 1.0, 0, 'xy', 6.0),
+]
+HIDE_REFS = ['SW18', 'SW19', 'TP1', 'TP2', 'TP3']  # named by the labels above
 
 # DRC findings accepted on purpose:
 # - mounting holes at the MP-16 positions sit inside switch outlines (as on the rev-1 and UI boards);

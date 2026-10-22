@@ -15,6 +15,7 @@ When the PATS pipeline improves, bring changes over file by file and note them b
 | `tools/render.sh` | bottom render includes `B.Fab` | part outlines help when placing |
 | `tools/make_lib.py` | `TLP109` symbol added | MIDI In opto-coupler of rev 1, not in KiCad's library |
 | `tools/fanout.py`, `build.py` | ground fan-out works on either side (`design.GND_FANOUT_SIDE`, default `F`) | all of this board's SMD parts are on the bottom; the fan-out handled only top-side parts |
+| `tools/pcb.py` | `design.HIDE_REFS`: references to hide outright | parts a label names in words (BOOT, RESET) |
 | `tools/xray.sh` | new | bottom parts seen from above, in the design frame |
 | `tools/where.py` | new | courtyard boxes and overlaps in the design frame |
 | `tools/stl_openings.py` | new | finds the enclosure's wall openings from the STLs |

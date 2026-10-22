@@ -202,6 +202,8 @@ def build(design, fp_path, path):
     # Labels placed clear of pads, holes, part outlines and each other (tools/silk.py)
     import silk
     failed = silk.place(board, getattr(design, 'LABELS', []), ORIGIN)
+    for ref in getattr(design, 'HIDE_REFS', []):  # parts a label names in words ("RESET"): no reference
+        board.FindFootprintByReference(ref).Reference().SetVisible(False)
     hidden = silk.place_refs(board)
     print(f'silk: {len(getattr(design, "LABELS", []))} labels' + (f'; no free spot for {", ".join(failed)}' if failed else '')
           + f'; {len(hidden)} references hidden for lack of room' + (f' ({", ".join(hidden)})' if hidden else ''))

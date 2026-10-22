@@ -36,12 +36,17 @@ frame; the enclosure STLs use the same x and y_stl = 104.775 - y).
 - **Fixed by the enclosure** (rev-1 positions, placed by `pin_targets` onto the rev-1 pad centres from
   `reference/rev1-pcb.easyeda.json`, with footprints converted from that board): MIDI In jack (x 19.6),
   USB-C (x 38.1, where the RP2040-Zero's socket was), MIDI Out jack (x 53.9), power switch (x 68.3),
-  side-view charge LED, battery plug (66.4, 26.7), encoder, OLED header.
+  side-view charge LED, encoder, OLED header. These never move (Samuel, 2026-10-22). The battery plug
+  (66.4, 26.7) is at its rev-1 position too, but may move.
   Checked against the STL openings with `tools/stl_openings.py`.
 - **Top band (y 0-31)**: RP2040 and its flash and crystal in the middle (inside the window of the "Bottom
   (Open)" shell, with BOOT, RESET and the SWD pads), MIDI In circuit under its jack, charger, load switch,
   LDO and LED level shifter on the right, fuel gauge and battery protection beside the battery plug.
   0402 passives here; 0603 elsewhere.
+- **Buttons and debug**: BOOT (SW18) and RESET (SW19) side by side in the lower left of the open bottom
+  shell's window, named on the bottom silkscreen; above them three SWD pads, TP1 SWCLK, TP2 SWDIO,
+  TP3 GND (left to right seen from above, right to left seen from below). Flashing a blank or stuck
+  board: hold BOOT, press RESET, release BOOT; the RPI-RP2 drive appears.
 - **Key area**: hot-swap sockets, LEDs and their capacitors as the PATS UI board; U1 (pads 1-8) between key
   rows 1 and 2 and U2 (pads 9-16) between rows 3 and 4, next to the keys they read; the 5 V LED boost
   between pads 3 and 4 and along row 1's LEDs.
