@@ -416,7 +416,13 @@ def _ripup(board, grid, net, stuck, widths, keep, tries=4, reach=1.0, join=None)
         board.BuildConnectivity()
         return board.GetConnectivity().GetUnconnectedCount(False)
     before = unconnected()
+    import os
+    import time
+    t_end = time.time() + float(os.environ.get('FINISH_RIPUP_SECONDS', '90'))  # per stuck net
     for other in sorted(near, key=near.get)[:tries]:
+        if time.time() > t_end:
+            print(f'finish: {net}: rip-up budget used up', flush=True)
+            break
         old = [t for t in board.GetTracks() if t.GetNetname() == other]
         saved = _save(old)
         for t in old:
@@ -441,9 +447,13 @@ def finish(board, clearance, only=None, widths=None, keep=()):
     nets = sorted(({s.net for s in shapes(board)[0]} & set(only or [])) if only else
                   ({s.net for s in shapes(board)[0]}) - SKIP_NETS) if True else []
     nets = [n for n in nets if n not in SKIP_NETS]
+    import time
     for net in nets:
         added = []
+        t0 = time.time()
         ok, stuck = _join(board, grid, net, widths, added)
+        if added or not ok:
+            print(f'finish: {net}: {"joined" if ok else "stuck, trying rip-up"} ({time.time() - t0:.0f} s)', flush=True)
         if added:
             done.append(net)
         if ok:
