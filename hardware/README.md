@@ -51,6 +51,23 @@ frame; the enclosure STLs use the same x and y_stl = 104.775 - y).
   rows 1 and 2 and U2 (pads 9-16) between rows 3 and 4, next to the keys they read; the 5 V LED boost
   between pads 3 and 4 and along row 1's LEDs.
 
+## JLCPCB (PCB and assembly)
+
+The board is made and assembled at JLCPCB (Samuel, 2026-10-22). Check the numbers below against their
+current capabilities page before each order; the build enforces the ones in **bold**.
+
+| Constraint | JLCPCB (2-layer, standard) | This board |
+|---|---|---|
+| Track width / spacing | 0.127 / 0.127 mm minimum | **0.127 mm min track, 0.13 mm clearance** (router works to 0.15) |
+| Vias | 0.3 mm drill / 0.6 mm pad without extra cost (0.2 mm possible at a fee) | **0.3 / 0.6 mm**, 0.4 / 0.8 mm on power |
+| Copper to board edge | 0.3 mm | **0.3 mm** |
+| Assembly sides | one side is cheapest (two sides = second setup) | **all SMD on the bottom** |
+| Parts over the board edge | needs edge rails (JLCPCB adds them, small fee), as rev 1 | jacks, USB-C, power switch overhang the top edge, as rev 1 |
+| Fine pitch | 0.4 mm QFN fine; ENIG recommended | RP2040 0.4 mm, BQ24074 0.5 mm, MAX17048 0.5 mm |
+| Parts library | basic parts free; each extended part type has a setup fee | `mp16/PARTS.md`; prefer basic passives |
+| Through-hole | hand-soldered here (cheaper); JLCPCB THT assembly possible | encoder, OLED header, battery plug, expansion header; USB-C's shell legs are through-hole but it is placed by JLCPCB (in the CPL) |
+| Files | Gerber zip, BOM (Comment, Designator, Footprint, LCSC), CPL (Designator, Mid X/Y, Layer, Rotation) | `mp16/fab/` |
+
 ## Fit checks still open (before ordering)
 
 1. USB-C height: the RP2040-Zero's socket sat 1 mm lower (on the module's own board); this socket is on
