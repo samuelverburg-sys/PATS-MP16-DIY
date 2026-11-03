@@ -96,10 +96,12 @@ add('ENC1', 'Device:RotaryEncoder_Switch', 'PATS:RotaryEncoder_Bourns_PEC11R-421
     'PEC11R 24 PPR + switch', {'A': 'ENC_A', 'B': 'ENC_B', 'C': 'GND', 'S1': 'KEY_ENC', 'S2': 'GND'},
     (9.525, 14.288), 0, 'F', block='input', mpn='Bourns PEC11R-4215F-S0024', lcsc='C143790',
     extra_pads={'MP': 'GND'}, note='footprint and position from the rev-1 board; hand-soldered')
-res0402('R2', '10k', 'ENC_A', '+3V3', (5.0, 24.0), 0, block='input')
-res0402('R3', '10k', 'ENC_B', '+3V3', (14.0, 24.0), 180, block='input')
-cap0402('C19', '10n', 'ENC_A', 'GND', (7.4, 24.0), 0, block='input')
-cap0402('C20', '10n', 'ENC_B', 'GND', (11.6, 24.0), 0, block='input')
+# On the top side, between the encoder body and the expansion header (run 13): on the bottom they sat in the
+# gap the AIN tracks need to pass the encoder (AIN2 and AIN4 left open in run 12).
+res0402('R2', '10k', 'ENC_A', '+3V3', (5.0, 24.0), 0, block='input', side='F')
+res0402('R3', '10k', 'ENC_B', '+3V3', (14.0, 24.0), 0, block='input', side='F')
+cap0402('C19', '10n', 'ENC_A', 'GND', (7.4, 24.0), 0, block='input', side='F')
+cap0402('C20', '10n', 'ENC_B', 'GND', (11.6, 24.0), 0, block='input', side='F')
 
 # ---------------------------------------------------------------------------
 # Switch inputs: 3x 74HC165 (TSSOP-16), each next to the keys it reads.
