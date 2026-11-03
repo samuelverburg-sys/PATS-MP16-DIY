@@ -406,7 +406,9 @@ add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC
 # the 74HC595 lines for an analog-mux board (data, clock = the 74HC165 clock, latch), I2C and power.
 # Replaces rev 1's 3-pin analog header.
 # ---------------------------------------------------------------------------
-EXP_PINS = {1: '+3V3', 2: 'GND', 3: 'AIN1', 4: 'AIN2', 5: 'AIN3', 6: 'AIN4', 7: 'EXP_MOSI', 8: 'SR_CLK',
+# AIN4..AIN1 left to right: the RP2040's ADC pins run AIN4 (top) to AIN1 down its left side, so their tracks
+# reach the header in this order without crossing (AIN1..4 left to right crossed; AIN4 failed twice).
+EXP_PINS = {1: '+3V3', 2: 'GND', 3: 'AIN4', 4: 'AIN3', 5: 'AIN2', 6: 'AIN1', 7: 'EXP_MOSI', 8: 'SR_CLK',
             9: 'EXP_LATCH', 10: 'GND', 11: 'I2C_SDA', 12: 'I2C_SCL'}
 J6_PIN1 = (5.6, 29.24)  # odd pins in the lower row, even pins 2.54 mm above; clear of H3 and the row-1 sockets
 add('J6', 'Connector_Generic:Conn_02x06_Odd_Even', 'Connector_PinHeader_2.54mm:PinHeader_2x06_P2.54mm_Vertical',
