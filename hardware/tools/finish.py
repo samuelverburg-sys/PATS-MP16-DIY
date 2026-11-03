@@ -383,6 +383,63 @@ def _join(board, grid, net, widths, added):
         added += add_path(board, grid, path, net, F, B, w)
 
 
+def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=()):
+    """Before autorouting: join every two pieces of a net that lie at most `max_mm` apart (a part's own
+    pins, a part and its capacitor), closest first, with the grid router, and lock the new tracks.
+    Freerouting failed such 1-3 mm hops in crowded corners and lost passes on them (MP-16, 2026-11-03);
+    here each takes about a second. Returns (joined count, [nets with a short hop it could not join])."""
+    import time
+    F, B = pcbnew.F_Cu, pcbnew.B_Cu
+    grid = Grid(board, clearance)
+    t0 = time.time()
+
+    def gap(ga, gb):
+        best = 1e9
+        for a in ga:
+            ax0, ay0, ax1, ay1 = a.bbox()
+            for b in gb:
+                bx0, by0, bx1, by1 = b.bbox()
+                best = min(best, max(0.0, ax0 - bx1, bx0 - ax1, ay0 - by1, by0 - ay1))
+        return best
+
+    all_shapes, holes = shapes(board)
+    nets = sorted({s.net for s in all_shapes} - SKIP_NETS - {NPTH} - set(skip))
+    joined, stuck = 0, set()
+    for net in nets:
+        tried = set()
+        while True:
+            groups = clusters([s for s in all_shapes if s.net == net])
+            if len(groups) < 2:
+                break
+            cands = sorted((gap(groups[i], groups[j]), i, j) for i in range(len(groups))
+                           for j in range(i + 1, len(groups)))
+            cands = [c for c in cands if c[0] <= max_mm and
+                     (round(c[0], 3), len(groups[c[1]]), len(groups[c[2]])) not in tried]
+            if not cands:
+                break
+            d, i, j = cands[0]
+            tried.add((round(d, 3), len(groups[i]), len(groups[j])))
+            a, b = groups[i], groups[j]
+            src = {F: in_copper(grid, a, F), B: in_copper(grid, a, B)}
+            dst = {F: in_copper(grid, b, F), B: in_copper(grid, b, B)}
+            path = None
+            for w in sorted({max((widths or {}).get(net, TRACK_W), TRACK_W), TRACK_W}, reverse=True):
+                blk, vblk = build_blocks(grid, all_shapes, holes, net, w)
+                path = astar(grid, blk, vblk, src, dst, F, B)
+                if path:
+                    break
+            if not path:
+                stuck.add(net)
+                continue
+            for t in add_path(board, grid, path, net, F, B, w):
+                t.SetLocked(True)
+            joined += 1
+            all_shapes, holes = shapes(board)
+    print(f'prejoin: {joined} short hops (<= {max_mm} mm) routed and locked in {time.time() - t0:.0f} s'
+          + (f'; could not: {", ".join(sorted(stuck))}' if stuck else ''), flush=True)
+    return joined, sorted(stuck)
+
+
 def _save(items):
     out = []
     for t in items:

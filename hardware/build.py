@@ -365,9 +365,10 @@ def print_open(report, prefix='route'):
                                                   for g in gaps[:3]) + (' ...' if len(gaps) > 3 else ''))
 
 
-def freerouting(board, ignore, tag, edit=None):
+def freerouting(board, ignore, tag, edit=None, margin=None, run=True):
     """Export `board` (pours already removed), run Freerouting skipping the `ignore` classes,
-    return the session path, or None. `edit` may rewrite the DSN text first."""
+    return the session path, or None. `edit` may rewrite the DSN text first. run=False: export only and
+    return the job for fr_run() (exports must be sequential, pcbnew is not thread-safe; runs need not)."""
     import re
     import subprocess
     import pcbnew
@@ -380,7 +381,7 @@ def freerouting(board, ignore, tag, edit=None):
         return None
     # Route with a little more clearance than DRC requires: Freerouting's polygon pad shapes and
     # rounding otherwise leave gaps a few um under the rule.
-    margin = MARGIN_OVERRIDE if MARGIN_OVERRIDE is not None else \
+    margin = margin if margin is not None else MARGIN_OVERRIDE if MARGIN_OVERRIDE is not None else \
         float(os.environ.get('ROUTE_CLEARANCE_MARGIN', getattr(design, 'ROUTE_CLEARANCE_MARGIN', 0.02)))
     margin *= 1000
     text = open(dsn).read()
@@ -412,6 +413,14 @@ def freerouting(board, ignore, tag, edit=None):
         # included; those stubs would then be locked into the stage.
         cmd += ['--router.autorouter.ignore_net_classes=' + ','.join(ignore), '--router.fanout.enabled=false']
     log = os.path.join(BUILD, f'freerouting{tag}.log')
+    job = (cmd, ses, log)
+    return fr_run(job) if run else job
+
+
+def fr_run(job):
+    """Run one prepared Freerouting job: (session path, log text), or None."""
+    import subprocess
+    cmd, ses, log = job
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=int(os.environ.get('ROUTE_TIMEOUT', '900')))
         out = r.stdout + r.stderr
@@ -498,6 +507,11 @@ def _route(rec):
                     t.SetLocked(True)
                 print(f'route: {fnet} fan-out {len(items)} items' + (f'; no room at {", ".join(failed)}' if failed else ''),
                       flush=True)
+        if getattr(design, 'PREROUTE_MM', 0):  # short hops first, deterministic and locked (tools/finish.py)
+            from finish import prejoin_short
+            prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.02,
+                          {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
+                          design.PREROUTE_MM, skip=set(getattr(design, 'PLANES', {}).values()))
         if getattr(design, 'ESCAPE', None):  # locked escape stubs from the fine-pitch parts' signal pins
             from fanout import escapes
             stubs = escapes(board, design.ESCAPE)
@@ -540,6 +554,36 @@ def _route(rec):
         attempts = []
         margins = getattr(design, 'ROUTE_MARGINS', None) or [None]
         before, best, attempt = snapshot(board), None, 0
+        par = int(os.environ.get('ROUTE_PARALLEL', getattr(design, 'ROUTE_PARALLEL', 0)))
+        if par > 1:
+            # N Freerouting runs at once with different clearance margins (Freerouting uses one core): its
+            # result swings from run to run, so the best of N by KiCad's count beats one more pass.
+            from concurrent.futures import ThreadPoolExecutor
+            pmargins = (list(margins) if margins != [None] else [0.02, 0.0, 0.04, 0.01])[:par]
+            jobs = [freerouting(board, ignore, f'{tag}-par{k}', base, margin=m, run=False) for k, m in enumerate(pmargins)]
+            jobs = [j for j in jobs if j]
+            t_par = time.time()
+            with ThreadPoolExecutor(len(jobs)) as ex:
+                results = list(ex.map(fr_run, jobs))
+            for m, res in zip(pmargins, results):
+                restore(board, before)
+                if not res:
+                    continue
+                for t in list(board.GetTracks()):
+                    if not t.IsLocked():
+                        board.Remove(t)
+                import_ses(board, res[0], min_w)
+                report = open_nets_report(board, stage_nets)
+                score = sum(len(v) for v in report.values())
+                attempt += 1
+                attempts.append({'margin': m, 'round': 0, 'first': [], 'open': sorted(report),
+                                 's': round(time.time() - t_par)})
+                print(f'route: parallel attempt margin {m}: {score} open', flush=True)
+                if best is None or score < best[0]:
+                    best = (score, snapshot(board), sorted(report), [], attempt)
+            if best is None:
+                return False
+            margins = []  # done: skip the sequential attempts
         for k, margin in enumerate(margins):
             MARGIN_OVERRIDE = margin
             vtag = tag + (f'-m{k}' if k else '')

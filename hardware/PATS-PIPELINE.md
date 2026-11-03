@@ -25,6 +25,10 @@ When the PATS pipeline improves, bring changes over file by file and note them b
 | `build.py` | the finish router gets only the nets KiCad reports open | it walked every net, rebuilding the board geometry for each (25-40 min a run) |
 | `build.py`, `tools/pcb.py` | 4 layers: `design.LAYERS`, `design.PLANES` (inner layer -> net); planes typed as power layers and kept in the router's input as Specctra planes; their nets fanned out to vias; Gerbers include the inner layers | this board on 2 layers left 49 connections open after Freerouting |
 | `build.py`, `tools/sch.py` | from PATS after 3d1c7dc (to a8de241): JLCPCB CPL offset for the MX-Hotswap-1U sockets (`CPL_OFFSETS`), byte-identical schematics and Gerber zips, fab keeps the board views | PATS commits 45b45e8, fa79d13, 3be9aac |
+| `tools/finish.py` | the grid search tries a 4 mm, then 12 mm window around the two pieces before the whole board | 80-90 s per stuck net, even for 1.5 mm hops |
+| `tools/finish.py`, `build.py` | `prejoin_short()` / `design.PREROUTE_MM`: pieces of a net within N mm routed and locked before Freerouting | Freerouting failed 1-3 mm hops (a part's own pins, a part and its capacitor) in crowded corners |
+| `build.py` | `design.ROUTE_PARALLEL`: N Freerouting runs at once (different margins), best kept by KiCad's count | its result swings from run to run (10 to 19 open on near-identical boards); it uses one core |
+| `build.py` | ground joining skipped when GND is a plane | it sees only the outer pours and 'joined' areas the plane already joins |
 | `tools/xray.sh` | new | bottom parts seen from above, in the design frame |
 | `tools/where.py` | new | courtyard boxes and overlaps in the design frame |
 | `tools/stl_openings.py` | new | finds the enclosure's wall openings from the STLs |

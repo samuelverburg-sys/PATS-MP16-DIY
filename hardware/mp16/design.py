@@ -433,9 +433,11 @@ NETCLASSES = {
 ROUTE_STAGES = [
     ('all', ['Fine', 'Medium', 'Usb', 'Supply', 'Power', 'Default']),
 ]
+ROUTE_PARALLEL = 3  # three Freerouting runs at once (margins 0.02, 0, 0.04 mm), best kept by KiCad's count
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
 GND_FANOUT = True
+PREROUTE_MM = 3.0  # pieces of a net <= 3 mm apart: routed and locked before Freerouting (tools/finish.py prejoin_short)
 GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground pads to the top pour
 GND_STITCH = 4.0
 DECOUPLED = {'VDD_CORE', 'VBAT_GAUGE'}
