@@ -646,8 +646,14 @@ def _route(rec):
         phases['stitch'], t_phase = round(time.time() - t_phase), time.time()
         print(f'route: {n} ground stitching vias ({design.GND_STITCH} mm grid)')
         from finish import join_ground
-        joined, cut_off = join_ground(board, getattr(design, 'CLEARANCE', 0.2) + 0.02, keep=NO_RIPUP(),
-                                      widths={n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}})
+        if 'GND' in getattr(design, 'PLANES', {}).values():
+            # A ground plane: every ground pad has a via to it (fan-out), and join_ground sees only the
+            # outer pours, so it would 'join' areas the plane already joins (90 s each). DRC checks it.
+            joined, cut_off = 0, 0
+            print('route: ground joining skipped (ground plane)', flush=True)
+        else:
+            joined, cut_off = join_ground(board, getattr(design, 'CLEARANCE', 0.2) + 0.02, keep=NO_RIPUP(),
+                                          widths={n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}})
         pcbnew.ZONE_FILLER(board).Fill(board.Zones())
         rec['ground_joined'], rec['ground_cut_off'] = joined, cut_off
         phases['join_ground'] = round(time.time() - t_phase)
