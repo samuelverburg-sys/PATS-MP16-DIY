@@ -54,8 +54,8 @@ Cloud sessions run `.claude/hooks/session-start.sh`, which calls both setup scri
   side-view charge LED (D20): they must meet the enclosure and the plate. Everything else may be moved
   to make the board work, the battery plug (J7) included.
 - Hardware: change `design.py`, regenerate with `build.py`, never hand-edit the generated KiCad files.
+  Ordering waits for the user's review; flashing a board is the user's step.
 - Routing experiments: one change per run, run with `ROUTE_NOTE="what it tests"`, read `build.py mp16 log` before
   changing placement or router settings, and add the result to `hardware/mp16/ROUTING-LOG.md`.
-  Ordering waits for the user's review; flashing a board is the user's step.
 - Arduino-IDE users must keep working without the CLI: sketches compile with the IDE when the
   sketchbook location is set to `firmware/` (README.md).
