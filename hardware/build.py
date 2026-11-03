@@ -439,11 +439,18 @@ def route():
     import time
     import buildlog
     rec = {'type': 'route', 'board': NAME, 'time': buildlog.now(), 'commit': buildlog.git_rev(),
+           'note': os.environ.get('ROUTE_NOTE', ''),  # what this run tests: ROUTE_NOTE="..." build.py ...
            'design': buildlog.sha(os.path.join(HERE, 'design.py')), 'stages': [],
            'settings': buildlog.settings(
                design, float(os.environ.get('ROUTE_CLEARANCE_MARGIN', getattr(design, 'ROUTE_CLEARANCE_MARGIN', 0.02))),
                int(os.environ.get('ROUTE_PASSES', str(getattr(design, 'ROUTE_PASSES', 30)))), int(os.environ.get('ROUTE_TIMEOUT', '900')), FREEROUTING)}
     t0, ok = time.time(), False
+    import signal
+
+    def stopped(sig, frame):  # a run stopped by hand (kill) still gets its record, marked stopped
+        rec['stopped'] = True
+        raise SystemExit(1)
+    signal.signal(signal.SIGTERM, stopped)
     try:
         ok = _route(rec)
     finally:
@@ -512,10 +519,12 @@ def _route(rec):
                       flush=True)
         if getattr(design, 'PREROUTE_MM', 0):  # short hops first, deterministic and locked (tools/finish.py)
             from finish import prejoin_short
-            prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.02,
+            t_pj = time.time()
+            pj_joined, pj_stuck = prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.02,
                           {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
                           design.PREROUTE_MM, skip=set(getattr(design, 'PLANES', {}).values()),
                           first=getattr(design, 'PREROUTE_FIRST', ()), first_mm=getattr(design, 'PREROUTE_FIRST_MM', 12.0))
+            rec['prejoin'] = {'joined': pj_joined, 'stuck': pj_stuck, 's': round(time.time() - t_pj)}
         if getattr(design, 'ESCAPE', None):  # locked escape stubs from the fine-pitch parts' signal pins
             from fanout import escapes
             stubs = escapes(board, design.ESCAPE)
@@ -670,6 +679,7 @@ def _route(rec):
     t_phase = time.time()
     report = open_nets_report(board)
     rec['open_after_router'] = {n: len(v) for n, v in report.items()}
+    rec['open_gaps_after_router'] = report  # where: {net: [[(item, x, y), ...], ...]}, design frame
     print(f'route: after Freerouting {sum(len(v) for v in report.values())} connections open in '
           f'{len(report)} nets ({round(time.time() - t_route)} s so far)', flush=True)
     print_open(report)
@@ -710,6 +720,7 @@ def _route(rec):
     tracks = [t for t in board.GetTracks() if t.GetClass() == 'PCB_TRACK']
     vias = [t for t in board.GetTracks() if t.GetClass() == 'PCB_VIA']
     rec.update(tracks=len(tracks), vias=len(vias), unrouted=board.GetConnectivity().GetUnconnectedCount(False))
+    rec['open_final'] = open_nets_report(board, skip=set())  # every net, ground included, with positions
     print(f'route: {len(tracks)} track segments, {len(vias)} vias; unrouted: {rec["unrouted"]}')
     pcbnew.SaveBoard(PCB, board)
     # content-derived IDs and order (tools/stable_ids.py), in a fresh process: reloading the board here,
@@ -890,7 +901,7 @@ def review():
 def log():
     """Route runs of this board from the build log, with their DRC and review results."""
     import buildlog
-    buildlog.table(NAME)
+    buildlog.table(NAME, last=int(os.environ.get('LOG_LAST', '15')), wide=bool(os.environ.get('LOG_WIDE')))
     return True
 
 

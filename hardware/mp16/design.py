@@ -458,6 +458,7 @@ PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ES
 # Not QSPI and VDD_CORE: routed first up to 15 mm, their shortest paths walled in the RP2040's GPIO pins
 # (ENC_A, MIDI_RX/TX, PGOOD_N, SWCLK left open, 2026-11-03); Freerouting fits them in fine.
 PREROUTE_FIRST_MM = 10.0
+ROUTE_LOG_VARS = {'mcu_side': MCU_SIDE}  # experiment switches recorded with every route run (build.py mp16 log)
 PREROUTE_MM = 3.0  # pieces of a net <= 3 mm apart: routed and locked before Freerouting (tools/finish.py prejoin_short)
 GND_FANOUT_SIDE = 'BF' if MCU_SIDE == 'F' else 'B'  # top too: the RP2040's capacitors (a top pour island left C33 open)
 GND_STITCH = 4.0
