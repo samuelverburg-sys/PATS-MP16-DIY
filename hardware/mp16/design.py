@@ -417,15 +417,20 @@ POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'SW_LED'}
 # Inner layer 1 is a solid ground plane, inner layer 2 the LED supply (VLED, every key cell has an LED);
 # their pads get a via straight down (tools/fanout.py) and the router never sees them. +3V3 stays a routed
 # 0.2 mm net (Supply). JLCPCB 4-layer standard stackup; same 0.127 mm / 0.3 mm rules.
-LAYERS = 4
-PLANES = {'In1.Cu': 'GND', 'In2.Cu': 'VLED'}
+# Samuel (2026-11-03): 2 layers preferred over 4. MP16_LAYERS=4 builds the 4-layer variant (GND and VLED
+# planes), kept for comparison.
+import os as _os  # noqa: E402
+LAYERS = int(_os.environ.get('MP16_LAYERS', '2'))
+PLANES = {'In1.Cu': 'GND', 'In2.Cu': 'VLED'} if LAYERS == 4 else {}
+if LAYERS == 2:
+    POWER_NETS.add('VLED')  # routed, 0.6 mm
 NETCLASSES = {
     # The RP2040's 0.4 mm-pitch pins: 0.15 mm tracks.
     'Fine': (0.15, sorted({n for n in rp.values() if n} - {'GND', '+3V3', 'VDD_CORE'})),
     'Medium': (0.4, ['VBUS', 'VSYS', 'VBAT']),  # the BQ24074's 0.5 mm-pitch power pins
     'Usb': (0.2, ['USB_DP', 'USB_DN']),
     'Supply': (0.2, ['+3V3', 'VDD_CORE']),
-    'Plane': (0.6, ['VLED']),  # on inner layer 2: fanned out to vias, not routed  # into fine-pitch pins; 0.2 mm carries far more than they need
+    **({'Plane': (0.6, ['VLED'])} if LAYERS == 4 else {}),  # 4 layers: on inner layer 2, fanned out, not routed
     'Ground': (0.3, ['GND']),
 }
 # One stage: Freerouting does not honour a class split on this board (each stage routed every net), so
