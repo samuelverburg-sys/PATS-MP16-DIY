@@ -13801,7 +13801,7 @@
 		)
 		(uuid "4303bf6b-b66c-5c19-b728-0d5325c8b43e")
 	)
-	(label "ENC_A"
+	(label "ENC_B"
 		(at 86.36 231.14 0)
 		(fields_autoplaced)
 		(effects
@@ -13810,9 +13810,9 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "c23a7da6-b191-5dcc-b9b2-fb4d7ef8b700")
+		(uuid "e6d0a1fd-ca02-58c6-b9b5-06af62b78890")
 	)
-	(label "ENC_B"
+	(label "ENC_A"
 		(at 86.36 233.68 0)
 		(fields_autoplaced)
 		(effects
@@ -13821,7 +13821,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "627f7272-a493-56a0-9228-87615e21797d")
+		(uuid "c0d77394-8fea-5210-96d9-6a5b92a39387")
 	)
 	(no_connect
 		(at 86.36 236.22)
@@ -25035,7 +25035,7 @@
 		)
 		(uuid "3c1db42b-1153-56c8-9af8-2318f70324bf")
 	)
-	(label "EXP_MOSI"
+	(label "EXP_LATCH"
 		(at 142.24 568.96 180)
 		(fields_autoplaced)
 		(effects
@@ -25044,9 +25044,9 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "c5457b40-0202-535a-8aad-768a6e47dee7")
+		(uuid "00a4f0a1-48bc-5d51-863d-1c1a2f2e4ed6")
 	)
-	(label "SR_CLK"
+	(label "EXP_MOSI"
 		(at 154.94 568.96 0)
 		(fields_autoplaced)
 		(effects
@@ -25055,9 +25055,9 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fc719c67-1403-538b-899d-46922c367954")
+		(uuid "e55c9d8a-b5e0-5ed9-8337-9fc9f926ad5a")
 	)
-	(label "EXP_LATCH"
+	(label "SR_CLK"
 		(at 142.24 571.5 180)
 		(fields_autoplaced)
 		(effects
@@ -25066,7 +25066,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "9ac26dd2-6f20-5b06-9a80-9d7980a08dab")
+		(uuid "6ea32822-070f-51ec-9778-e57d816b7a7a")
 	)
 	(text "Mechanical"
 		(at 20 594.5 0)
