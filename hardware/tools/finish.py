@@ -231,8 +231,27 @@ def in_copper(grid, shapes_, layer):
 
 
 def astar(grid, blk, vblk, src, dst, F, B):
-    """src/dst: {layer: bool mask}. Returns [(layer, iy, ix), ...] or None."""
+    """src/dst: {layer: bool mask}. Returns [(layer, iy, ix), ...] or None. Searches a window around the
+    two pieces first (4 mm, then 12 mm margin) and the whole board last: a search with no path explores
+    everything it may, which on the whole board took 80-90 s per stuck net (MP-16, 2026-11-03)."""
+    ys, xs = np.nonzero(src[F] | src[B] | dst[F] | dst[B])
+    if not len(ys):
+        return None
     ny, nx = grid.X.shape
+    for margin_mm, limit in ((4.0, 400_000), (12.0, 1_500_000), (None, 1_000_000)):
+        if margin_mm is None:
+            win = (0, ny, 0, nx)
+        else:
+            m = int(margin_mm / G)  # grid cells
+            win = (max(0, ys.min() - m), min(ny, ys.max() + m + 1), max(0, xs.min() - m), min(nx, xs.max() + m + 1))
+        path = _astar(grid, blk, vblk, src, dst, F, B, win, limit)
+        if path or win == (0, ny, 0, nx):
+            return path
+    return None
+
+
+def _astar(grid, blk, vblk, src, dst, F, B, win, limit):
+    wy0, wy1, wx0, wx1 = win
     L = [F, B]
     free = [~blk[F], ~blk[B]]
     goal = [dst[F] & free[0], dst[B] & free[1]]
@@ -271,12 +290,12 @@ def astar(grid, blk, vblk, src, dst, F, B):
                 path.append(k)
             return path[::-1]
         n += 1
-        if n > 4_000_000:
+        if n > limit:
             return None
         fac = B_COST if li == 1 else 1.0
         for dy, dx, c in steps:
             y2, x2 = iy + dy, ix + dx
-            if 0 <= y2 < ny and 0 <= x2 < nx and free[li][y2, x2]:
+            if wy0 <= y2 < wy1 and wx0 <= x2 < wx1 and free[li][y2, x2]:
                 if dy and dx and not (free[li][iy, x2] and free[li][y2, ix]):
                     continue  # no corner cutting
                 k2 = (li, y2, x2)

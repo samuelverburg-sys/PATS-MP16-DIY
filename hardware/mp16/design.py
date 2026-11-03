@@ -194,7 +194,8 @@ add('U10', 'MCU_RaspberryPi:RP2040', 'Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP
     RP, 0, 'B', block='mcu', mpn='RP2040', lcsc='C2040')
 # Decoupling: one 100 nF per IOVDD pin, 1 uF on VREG_IN and VREG_VOUT. Each capacitor sits 1.9 mm out from
 # its pin row, opposite its pin, so the signal pins between them keep a free way out (route 3 walled pins
-# in with capacitors touching the pin rows). Upright (rot 90) on the sides, a 1.2 mm-pitch row on top.
+# in with capacitors touching the pin rows). Upright (rot 90) on the sides, a top row that leaves a lane for the USB pair
+# (pins 46, 47) and nothing above the QSPI pins (51-56).
 TOP_Y = 10.15  # the row between USB-C (its body ends at y 9.2) and the RP2040
 cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1')
 cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10')
@@ -202,15 +203,16 @@ cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, 
 cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD')
 cap0402('C37', '1u', 'VDD_CORE', 'GND', (31.4, TOP_Y), 90, block='mcu', note='VREG_VOUT')
 cap0402('C36', '1u', '+3V3', 'GND', (32.6, TOP_Y), 90, block='mcu', note='VREG_IN')
-cap0402('C35', '100n', '+3V3', 'GND', (34.2, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
-cap0402('C39', '100n', 'VDD_CORE', 'GND', (35.4, TOP_Y), 90, block='mcu', note='DVDD pin 50')
+cap0402('C35', '100n', '+3V3', 'GND', (34.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
+cap0402('C39', '100n', 'VDD_CORE', 'GND', (30.2, TOP_Y), 90, block='mcu', note='DVDD pin 50')
 cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22')
 cap0402('C38', '100n', 'VDD_CORE', 'GND', (rp_pin(23)[0] - 1.2, rp_pin(23)[1] + 2.2), 90, block='mcu', note='DVDD pin 23')
 
-# Flash right of the RP2040's QSPI corner (pins 51-56, top right), pins facing it.
+# Flash right of the RP2040's QSPI corner (pins 51-56, top right), pin rows left and right: both rows open
+# onto free board (rows up and down left the far row reachable only through a 1.2 mm channel).
 add('U11', 'Memory_Flash:W25Q128JVS', 'Package_SO:SOIC-8_5.23x5.23mm_P1.27mm', 'W25Q128JV',
     {'1': 'QSPI_SS', '2': 'QSPI_SD1', '3': 'QSPI_SD2', '4': 'GND', '5': 'QSPI_SD0', '6': 'QSPI_SCLK',
-     '7': 'QSPI_SD3', '8': '+3V3'}, (44.0, 15.6), 90, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
+     '7': 'QSPI_SD3', '8': '+3V3'}, (46.2, 14.6), 0, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
     note='16 MB; Arduino: Generic RP2040, boot2 W25Q080 QSPI /2')
 cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 0, block='mcu')
 # BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low). The 1 k
