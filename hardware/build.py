@@ -511,7 +511,8 @@ def _route(rec):
             from finish import prejoin_short
             prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.02,
                           {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
-                          design.PREROUTE_MM, skip=set(getattr(design, 'PLANES', {}).values()))
+                          design.PREROUTE_MM, skip=set(getattr(design, 'PLANES', {}).values()),
+                          first=getattr(design, 'PREROUTE_FIRST', ()), first_mm=getattr(design, 'PREROUTE_FIRST_MM', 12.0))
         if getattr(design, 'ESCAPE', None):  # locked escape stubs from the fine-pitch parts' signal pins
             from fanout import escapes
             stubs = escapes(board, design.ESCAPE)

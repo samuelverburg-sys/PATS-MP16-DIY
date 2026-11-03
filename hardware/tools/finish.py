@@ -390,7 +390,7 @@ def _join(board, grid, net, widths, added):
         added += add_path(board, grid, path, net, F, B, w)
 
 
-def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=()):
+def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), first_mm=12.0):
     """Before autorouting: join every two pieces of a net that lie at most `max_mm` apart (a part's own
     pins, a part and its capacitor), closest first, with the grid router, and lock the new tracks.
     Freerouting failed such 1-3 mm hops in crowded corners and lost passes on them (MP-16, 2026-11-03);
@@ -411,8 +411,20 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=()):
 
     all_shapes, holes = shapes(board)
     nets = sorted({s.net for s in all_shapes} - SKIP_NETS - {NPTH} - set(skip))
+
+    def shortest(net):
+        groups = clusters([s for s in all_shapes if s.net == net])
+        return min((gap(groups[i], groups[j]) for i in range(len(groups)) for j in range(i + 1, len(groups))),
+                   default=1e9)
+
+    # Order (Samuel, 2026-11-03: priority by importance and distance, less left to chance): the nets named
+    # in `first` (USB, crystal, flash, core supply) in that order with a longer reach (first_mm), then every
+    # other net by its shortest hop, shortest first, so the short hops are never blocked by longer ones.
+    first = [n for n in first if n in nets]
+    rest = sorted((n for n in nets if n not in first), key=lambda n: (round(shortest(n), 3), n))
     joined, stuck = 0, set()
-    for net in nets:
+    for net in first + rest:
+        reach = first_mm if net in first else max_mm
         tried = set()
         while True:
             groups = clusters([s for s in all_shapes if s.net == net])
@@ -420,7 +432,7 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=()):
                 break
             cands = sorted((gap(groups[i], groups[j]), i, j) for i in range(len(groups))
                            for j in range(i + 1, len(groups)))
-            cands = [c for c in cands if c[0] <= max_mm and
+            cands = [c for c in cands if c[0] <= reach and
                      (round(c[0], 3), len(groups[c[1]]), len(groups[c[2]])) not in tried]
             if not cands:
                 break
@@ -442,7 +454,8 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=()):
                 t.SetLocked(True)
             joined += 1
             all_shapes, holes = shapes(board)
-    print(f'prejoin: {joined} short hops (<= {max_mm} mm) routed and locked in {time.time() - t0:.0f} s'
+    print(f'prejoin: {joined} hops ({", ".join(first)} up to {first_mm} mm, others <= {max_mm} mm) routed and '
+          f'locked in {time.time() - t0:.0f} s'
           + (f'; could not: {", ".join(sorted(stuck))}' if stuck else ''), flush=True)
     return joined, sorted(stuck)
 

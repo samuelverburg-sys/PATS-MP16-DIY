@@ -238,7 +238,7 @@ res0402('R11', '10k', 'RUN', '+3V3', (31.4, 24.4), 0, block='mcu')
 add('Y1', 'Device:Crystal_GND24', 'Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm', '12MHz',
     {'1': 'XIN', '2': 'GND', '3': 'XTAL_OUT', '4': 'GND'}, (38.6, 21.6), 0, MCU_SIDE, block='mcu',
     mpn='Abracon ABM8-272-T3', lcsc='C20625731', note='12 MHz, CL 10 pF, approved by Abracon for the RP2040')
-res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 270, block='mcu', side=MCU_SIDE)
+res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 90, block='mcu')  # bottom, by pin 21 (on top, XOUT was left open)
 cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu', side=MCU_SIDE)
 cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu', side=MCU_SIDE)
 
@@ -450,6 +450,14 @@ ROUTE_PARALLEL = 3  # three Freerouting runs at once (margins 0.02, 0, 0.04 mm),
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
 GND_FANOUT = True
+# Routed first, in this order, deterministically (tools/finish.py prejoin_short), up to PREROUTE_FIRST_MM
+# between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
+PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ESD -> 27R -> RP2040
+                  'XIN', 'XOUT', 'XTAL_OUT',                    # crystal
+                  'QSPI_SCLK', 'QSPI_SS', 'QSPI_SD0', 'QSPI_SD1', 'QSPI_SD2', 'QSPI_SD3',  # flash
+                  'VDD_CORE',                                   # 1.1 V core supply and its capacitors
+                  'ISET', 'ITERM']                              # charger current setting
+PREROUTE_FIRST_MM = 15.0
 PREROUTE_MM = 3.0  # pieces of a net <= 3 mm apart: routed and locked before Freerouting (tools/finish.py prejoin_short)
 GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground pads to the top pour
 GND_STITCH = 4.0
