@@ -516,7 +516,7 @@ def fr_run(job):
     import subprocess
     cmd, ses, log = job
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=int(os.environ.get('ROUTE_TIMEOUT', '900')))
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=int(os.environ.get('ROUTE_TIMEOUT', getattr(design, 'ROUTE_TIMEOUT', 900))))
         out = r.stdout + r.stderr
     except subprocess.TimeoutExpired as e:
         out = (e.stdout or b'').decode() if isinstance(e.stdout, bytes) else (e.stdout or '')
@@ -537,7 +537,7 @@ def route():
            'design': buildlog.sha(os.path.join(HERE, 'design.py')), 'stages': [],
            'settings': buildlog.settings(
                design, float(os.environ.get('ROUTE_CLEARANCE_MARGIN', getattr(design, 'ROUTE_CLEARANCE_MARGIN', 0.02))),
-               int(os.environ.get('ROUTE_PASSES', str(getattr(design, 'ROUTE_PASSES', 30)))), int(os.environ.get('ROUTE_TIMEOUT', '900')), FREEROUTING)}
+               int(os.environ.get('ROUTE_PASSES', str(getattr(design, 'ROUTE_PASSES', 30)))), int(os.environ.get('ROUTE_TIMEOUT', getattr(design, 'ROUTE_TIMEOUT', 900))), FREEROUTING)}
     if not rec['note'] and not QUICK and not os.environ.get('ROUTE_CONTINUE'):
         print('route: set ROUTE_NOTE="what this run tests" (and run build.py <board> preflight first)')
         return False
@@ -622,7 +622,9 @@ def _route(rec):
         if getattr(design, 'PREROUTE_MM', 0):  # short hops first, deterministic and locked (tools/finish.py)
             from finish import prejoin_short
             t_pj = time.time()
-            pj_joined, pj_stuck = prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.02,
+            # the clearance of the widest Freerouting margin (+0.04), plus 0.01: locked tracks closer than the
+            # router's clearance are 'unfixable violations' to it (run 14: 58-139, ground vias vs pre-routed tracks)
+            pj_joined, pj_stuck = prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.05,
                           {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
                           design.PREROUTE_MM, skip=set(getattr(design, 'PLANES', {}).values()),
                           first=getattr(design, 'PREROUTE_FIRST', ()), first_mm=getattr(design, 'PREROUTE_FIRST_MM', 12.0))

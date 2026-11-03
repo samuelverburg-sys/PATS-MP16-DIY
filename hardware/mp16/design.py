@@ -435,16 +435,16 @@ POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'SW_LED'}
 # planes), kept for comparison.
 _os = os
 LAYERS = int(_os.environ.get('MP16_LAYERS', '4'))  # Samuel 2026-11-03: 4 layers, one assembly side
-PLANES = {'In1.Cu': 'GND', 'In2.Cu': 'VLED'} if LAYERS == 4 else {}
-if LAYERS == 2:
-    POWER_NETS.add('VLED')  # routed, 0.6 mm
+# 4 layers: In1 a solid ground plane; In2 a signal layer (run 15). With In2 a VLED plane too, only the outer
+# two layers carried signals, as on 2 layers, and run 14 left 39 connections open after 8 passes.
+PLANES = {'In1.Cu': 'GND'} if LAYERS == 4 else {}
+POWER_NETS.add('VLED')  # routed, 0.6 mm
 NETCLASSES = {
     # The RP2040's 0.4 mm-pitch pins: 0.15 mm tracks.
     'Fine': (0.15, sorted({n for n in rp.values() if n} - {'GND', '+3V3', 'VDD_CORE'})),
     'Medium': (0.4, ['VBUS', 'VSYS', 'VBAT']),  # the BQ24074's 0.5 mm-pitch power pins
     'Usb': (0.2, ['USB_DP', 'USB_DN']),
     'Supply': (0.2, ['+3V3', 'VDD_CORE']),
-    **({'Plane': (0.6, ['VLED'])} if LAYERS == 4 else {}),  # 4 layers: on inner layer 2, fanned out, not routed
     'Ground': (0.3, ['GND']),
 }
 # One stage: Freerouting does not honour a class split on this board (each stage routed every net), so
@@ -454,6 +454,7 @@ ROUTE_STAGES = [
 ]
 ROUTE_PARALLEL = 3  # three Freerouting runs at once (margins 0.02, 0, 0.04 mm), best kept by KiCad's count
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
+ROUTE_TIMEOUT = 1500  # s per Freerouting run; 4 layers took 55-130 s per pass (run 14 timed out at 900)
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
 GND_FANOUT = True
 # Routed first, in this order, deterministically (tools/finish.py prejoin_short), up to PREROUTE_FIRST_MM

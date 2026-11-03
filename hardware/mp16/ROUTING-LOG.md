@@ -31,7 +31,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
 | 1 | 4 layers (GND + VLED planes), all parts on the bottom | 11 | run 10 + J6 pin 1 -> (6.4, 28.0) (congestion 75.1 -> 62.6 on a 0.5 mm grid) | stopped at once | - | - | wrong on two counts: J6's pins came 0.3 mm from R2, C19, C20, R3 on the bottom (hand-soldered: bridges; the courtyard check compared one side only, now it checks through-hole parts against the other side), and on a 0.25 mm grid the gain vanished (all J6 positions 39-42): the coarse score was aliasing |
 | 12 | run 10 + uncrossed ends found by the new crossing check: ENC_A on GPIO23 / ENC_B on GPIO22 (the encoder's A is the farther pin), SWD pads SWDIO, SWCLK, GND left to right, header pins 7-9 EXP_LATCH, EXP_MOSI, SR_CLK; J6 back at (5.6, 29.24); congestion 39.1 (0.25 mm grid) | 9 / 11 / 12 connections | **2 (AIN2, AIN4)**, as the crossing check predicted | **0 err, 3 unc** (AIN2, AIN4, 1 ground) | ENC_A and SWCLK routed; ground nearly whole |
 | 13 | run 12 + the encoder's R2, C19, C20, R3 on the top side (same place): on the bottom they sat in the gap the AIN tracks need past the encoder | 10 / 9 / 11 connections | stopped in the finish (ENC_A, MIDI_RX, RUN stuck at that point) | - | AIN2 and AIN4 routed. Stopped: Samuel chose 4 layers after the data review (docs/decisions/0002) |
-| 14 | **4 layers** (In1 GND, In2 VLED), every SMD part on the bottom (one assembly side); expansion header replaced by a 4-pin JST SH I2C connector at the bottom edge; MAX17048 gauge replaced by a 1M/1M divider to GPIO29; congestion 39.2 | | | | |
+| 14 | **4 layers** (In1 GND plane, In2 VLED plane), every SMD part on the bottom; Qwiic J6 at the bottom edge; battery divider; congestion 39.2 | all 3 timed out (900 s) at pass 6-9: 39-92 unrouted, 58-139 violations | - | - | two faults: (1) with both inner layers planes only the outer two carried signals, as on 2 layers, now with the RP2040's parts back on the bottom; (2) Freerouting saw 58-139 'unfixable' violations before routing: pre-routed tracks 0.15 mm from ground vias, under its clearance + margin (0.17-0.19) |
+| 15 | run 14 with In2 a **signal layer** (VLED routed as a 0.6 mm power track; In1 stays the ground plane); pre-route keeps the router's widest clearance (+0.05); SES import takes inner-layer tracks; Freerouting timeout 1500 s; congestion 35.8 (In2 counted) | | | | |
 | 2 | 2 layers, GPIO map: every signal on the RP2040 side it leaves towards | 10 / 7 / 11 | 3 (ISET, USB pair) | 8 err | the GPIO remap helped; 8 errors from margin 0.0 and edge insets (generator fixed) |
 | 3 | RP2040 1 mm left (USB lane past the USB-C shell leg), ISET/ITERM swapped | 13 / 14 / 15 | 8 (USB pair, QSPI_SD3, RUN, VDD_CORE, ISET, AIN2, VSW) | not run | bottom-only is too crowded around the RP2040 on 2 layers |
 | 4 | **RP2040's capacitors, flash and crystal on the top side** (`MP16_MCU_SIDE=F`), under the OLED | 6 / 6 / 7 | 3 (ITERM, XOUT, a top GND pad) | **0 err** | big step: the bottom around the RP2040 is free for its signals; needs double-sided assembly |
@@ -58,5 +59,9 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
   neighbouring pins whose connections cross). The congestion score does not separate small moves (runs 8, 9,
   10 score 40.4, 40.0, 39.2 on the fine grid while leaving 4, 2, 2 nets open); use it for big moves and to
   find crowded windows. On run 10's placement the crossing check names exactly the two nets left open.
+- A 4-layer board with two inner planes has the signal room of a 2-layer board. Give it at least one inner
+  signal layer.
+- Locked items must keep the router's clearance including its margin, or the router starts with violations
+  it cannot fix and routes around them badly.
 - Recurring trouble spot: the charger group (U13 and its resistors) in the channel between key rows 2 and 3:
   ISET, ITERM, VSYS, PGOOD_N and a ground area have each failed there.

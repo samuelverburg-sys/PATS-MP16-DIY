@@ -45,7 +45,10 @@ def _analyse(board, skip, off):
     x0 -= off[0] * WIN * CELL
     y0 -= off[1] * WIN * CELL
     nx, ny = nx + WIN, ny + WIN
-    blocked = {pcbnew.F_Cu: np.zeros((ny, nx), bool), pcbnew.B_Cu: np.zeros((ny, nx), bool)}
+    # every signal layer has room (a power-type inner layer is a plane, not routing room)
+    signal = [pcbnew.F_Cu, pcbnew.B_Cu] + [board.GetLayerID(f'In{k}.Cu') for k in range(1, board.GetCopperLayerCount() - 1)
+                                           if board.GetLayerType(board.GetLayerID(f'In{k}.Cu')) == pcbnew.LT_SIGNAL]
+    blocked = {L: np.zeros((ny, nx), bool) for L in signal}
 
     def mark(layer, cx, cy, hw, hh):
         i0, i1 = int((cx - hw - x0) / CELL), int((cx + hw - x0) / CELL) + 1

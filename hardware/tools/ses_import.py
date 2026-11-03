@@ -15,6 +15,8 @@ def import_ses(board, path, min_width_nm=MIN_WIDTH_NM):
     scale = {'um': 1000, 'mm': 1000000, 'mil': 25400}[str(res[1])] / float(res[2])  # nm per SES unit
     pt = lambda x, y: pcbnew.VECTOR2I(int(round(float(x) * scale)), int(round(-float(y) * scale)))
     layers = {'F.Cu': pcbnew.F_Cu, 'B.Cu': pcbnew.B_Cu}
+    for k in range(1, board.GetCopperLayerCount() - 1):  # inner signal layers (a 4-layer board's In2.Cu)
+        layers[f'In{k}.Cu'] = board.GetLayerID(f'In{k}.Cu')
     nets = board.GetNetsByName()
     n_tracks = n_vias = 0
     for net in find(first(routes, 'network_out'), 'net'):
