@@ -282,13 +282,13 @@ add('U13', 'Battery_Management:BQ24074RGT', 'Package_DFN_QFN:VQFN-16-1EP_3x3mm_P
                 '12': 'ILIM', '14': None, '15': 'ITERM', '16': 'ISET'},
     CHG_AT, 180, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
     note='EN2=1, EN1=0: input limit set by ILIM; /CE=0: charging on; TMR open: default safety timers')
-cap0402('C50', '1u', 'VBUS', 'GND', (61.4, 27.2), 90, block='power')
-cap('C51', '10u', 'VSYS', 'GND', (63.0, 27.2), 90, block='power')
-cap('C52', '10u', 'VBAT', 'GND', (65.0, 27.2), 90, block='power')
+cap0402('C50', '1u', 'VBUS', 'GND', (63.2, 27.2), 90, block='power')
+cap('C51', '10u', 'VSYS', 'GND', (64.8, 27.2), 90, block='power')
+cap('C52', '10u', 'VBAT', 'GND', (66.8, 27.2), 90, block='power')
 res0402('R20', '3k', 'ISET', 'GND', (53.3, 27.2), 90, block='power', note='charge current 890/R = 0.30 A')
-res0402('R21', '1k', 'ILIM', 'ILIM_R', (52.0, 27.2), 90, block='power',
+res0402('R21', '1k', 'ILIM', 'ILIM_R', (60.8, 27.2), 270, block='power',
     note='input current limit: R21 + R22 = 1.18k, 1550/R = 1.3 A')
-res0402('R22', '180', 'ILIM_R', 'GND', (50.8, 27.2), 90, block='power')
+res0402('R22', '180', 'ILIM_R', 'GND', (62.0, 27.2), 90, block='power')
 res('R23', '4.12k', 'ITERM', 'GND', (54.6, 27.2), 90, block='power', lcsc='C2960702', note='as TI typical application')
 res0402('R24', '10k', 'TS', 'GND', (49.6, 27.2), 90, block='power',
     note='fixed 10k: no temperature sensing (generic packs have no NTC)')

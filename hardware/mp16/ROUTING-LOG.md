@@ -30,7 +30,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
 | 6 | as 5 with priority only for USB, crystal, ISET/ITERM (up to 10 mm) | 6 / 7 / 7 | 1 (PGOOD_N) + 2 ground islands | 3 err (VBUS 0.235 mm from the top edge) | best so far; the edge inset was in um, not mm (fixed); ground joining ran 865 s (budget added) |
 | 7 | as 6 + PGOOD_N pre-routed last (own reach 60 mm), edge inset = 0.3 mm + 20 um | 13 / 12 / 18 | stopped | - | worse; two changes at once (breaking the one-change rule). Open at the USB-C edge (CC2, VBUS, VBUS_IN): the inset; KEY_P2, AIN4, I2C_SDA, SWCLK: likely the long PGOOD_N route |
 | 8 | run 6 + the edge inset only (needed for JLCPCB anyway): the new baseline | 43 / 8 / 7 connections (9 / 7 / 6 nets) | 4 (AIN4, PGOOD_N, VBUS_IN, VSYS) + 7 ground areas | **0 err**, 11 unc | the inset fixes the edge errors and costs little; one attempt fell to 43 open on the same board (Freerouting's spread). Ground areas cut off around U1/U2 and under the charger; the charger group (U13, between key rows 2 and 3) blocks the channel the key and LED lines use |
-| 9 | run 8 + the charger group (U13, C50-C52, R20-R24) moved from the channel between key rows 2-3 to the free band under the OLED (x 47-71, y 24-30) | | | | |
+| 9 | run 8 + the charger group (U13, C50-C52, R20-R24) moved from the channel between key rows 2-3 to the free band under the OLED (x 47-71, y 24-30) | 13 / 13 / 14 connections | **2 (AIN4, ILIM)** + 10 ground areas | 0 err, 12 unc | worse after Freerouting, better after the finish: the finish's result is what counts. ILIM: R21 sat left of U13, its pin is on the right (the facing check missed it: no partner part to compare with) |
+| 10 | run 9 + R21/R22 beside ILIM (pin 12, right of U13) + expansion header AIN4..AIN1 left to right (uncrossed) | | | | |
 
 ## What has been learnt
 
@@ -40,5 +41,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
   Pre-route only short, critical nets (USB, crystal, charger resistors), not buses that fan out (QSPI).
 - Freerouting's result varies between attempts on the same board (run 8: 43, 8 and 7 open); three parallel
   attempts with different margins and keeping the best is a lottery, so it is a last step, never the fix.
+- Judge a placement by what is open after the finish, not after Freerouting (run 9: worse after Freerouting,
+  better after the finish). Ground areas depend on the ground-joining budget (GROUND_SECONDS); judge signal
+  nets in experiments and give the final build the long budget.
 - Recurring trouble spot: the charger group (U13 and its resistors) in the channel between key rows 2 and 3:
   ISET, ITERM, VSYS, PGOOD_N and a ground area have each failed there.
