@@ -24991,7 +24991,7 @@
 		)
 		(uuid "7a655ac3-1e22-5972-a189-6b0b0a8cf62f")
 	)
-	(label "AIN1"
+	(label "AIN4"
 		(at 142.24 563.88 180)
 		(fields_autoplaced)
 		(effects
@@ -25000,9 +25000,9 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ba3c83b0-88d2-5d31-858f-aa06e054a69f")
+		(uuid "f4387587-1ac7-59a1-b02e-818713420393")
 	)
-	(label "AIN2"
+	(label "AIN3"
 		(at 154.94 563.88 0)
 		(fields_autoplaced)
 		(effects
@@ -25011,9 +25011,9 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0f2c4fe0-8ecc-5fa9-b5a2-351cf7dc1b4c")
+		(uuid "5633aa16-ff87-582d-a83d-55f5eb493d45")
 	)
-	(label "AIN3"
+	(label "AIN2"
 		(at 142.24 566.42 180)
 		(fields_autoplaced)
 		(effects
@@ -25022,9 +25022,9 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8b80f9be-2f5d-5ece-8a24-d9c1f35307e5")
+		(uuid "96aafca0-cc0f-5f4c-a5bc-c81570fc29fa")
 	)
-	(label "AIN4"
+	(label "AIN1"
 		(at 154.94 566.42 0)
 		(fields_autoplaced)
 		(effects
@@ -25033,7 +25033,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "83b9ff89-193a-5eb5-ad32-e246525cd571")
+		(uuid "3c1db42b-1153-56c8-9af8-2318f70324bf")
 	)
 	(label "EXP_MOSI"
 		(at 142.24 568.96 180)

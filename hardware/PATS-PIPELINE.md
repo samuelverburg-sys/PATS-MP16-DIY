@@ -34,3 +34,9 @@ When the PATS pipeline improves, bring changes over file by file and note them b
 | `tools/stl_openings.py` | new | finds the enclosure's wall openings from the STLs |
 | `lib/PATS.pretty/Toshiba_SO6-5P_TLP109` | new, converted from the rev-1 board (`tools/easyeda_fp.py`) | |
 | `lib/PATS.pretty/LED_SideView_XL-1606_RD` | new, converted from the rev-1 board | side-view charge LED |
+| `build.py` | facing check: a part on the far side of its chip from the only pin it serves (more than 120 deg) | MP-16 run 9: R21 left of U13 with ILIM on the right stayed open; the order and turn checks could not see it |
+| `tools/finish.py`, `build.py` | pre-route order: `design.PREROUTE_FIRST` nets first (an entry may be `(net, mm)`), then every net by its shortest hop | alphabetical order let long hops block short ones; Samuel: route the critical nets first |
+| `build.py`, `tools/buildlog.py` | route log: `ROUTE_NOTE`, pre-route result, gap positions, settings changed since the previous run, stopped runs; `LOG_WIDE=1 build.py <board> log` | to learn from each run instead of re-running |
+| `tools/finish.py` | `join_ground` time budget (`GROUND_SECONDS`, 300) with the positions of areas left cut off | it ran 865 s on one MP-16 run |
+| `build.py` | DSN boundary inset = edge clearance + 20 um (the DSN is in um; the old `+ 0.08` was 0.08 um) | tracks ended 0.235 mm from the edge (rule 0.3) |
+| `build.py` | ground fan-out on several sides (`GND_FANOUT_SIDE = 'BF'`) | the MP-16's RP2040 capacitors are on the top, the rest on the bottom |

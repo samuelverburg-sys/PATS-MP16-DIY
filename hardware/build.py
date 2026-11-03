@@ -202,9 +202,34 @@ def facing():
                 if a[1] == b[1] and a[4] != b[4] and (a[2] - b[2]) * (a[3] - b[3]) < 0:
                     order.append(f'{fp.GetReference()}: {a[4]} (pin {a[0]}) and {b[4]} (pin {b[0]}) are in the '
                                  f'opposite order to their pins; swap them')
-    for w in warn + order:
+    # Side: a part whose only chip pin on that net is on the chip's far side from it has to route around the
+    # chip (MP-16 run 9: R21 left of U13, ILIM on its right; left open, and neither check above saw it).
+    side_warn = []
+    fps = {f.GetReference(): f for f in board.GetFootprints()}
+    for fp in board.GetFootprints():
+        pads = [p for p in fp.Pads() if p.GetNumber()]
+        if fp.GetReference()[0] not in 'RCLD' or len(pads) != 2:
+            continue
+        for p in pads:
+            net = p.GetNetname()
+            if not net or net in ('GND',) or net.startswith('+') or net in getattr(design, 'POWER_NETS', set()):
+                continue
+            pins = [(ref, q) for ref, q in chip_pads if q.GetNetname() == net]
+            if len(pins) != 1:
+                continue
+            ref, q = pins[0]
+            c = fps[ref].GetPosition()
+            to_pin = (q.GetPosition().x - c.x, q.GetPosition().y - c.y)
+            to_part = (p.GetPosition().x - c.x, p.GetPosition().y - c.y)
+            dist = math.hypot(*to_part) * math.hypot(*to_pin)
+            if (math.hypot(*to_part) < pcbnew.FromMM(12) and dist and
+                    (to_pin[0] * to_part[0] + to_pin[1] * to_part[1]) / dist < -0.5):  # more than 120 deg apart
+                side_warn.append(f'{fp.GetReference()}: on the far side of {ref} from pin {q.GetNumber()} ({net}); '
+                                 f'move it to that pin\'s side')
+    for w in warn + order + side_warn:
         print('facing:', w)
-    print(f'facing: {len(warn)} parts turned away from the pin they serve, {len(order)} pairs in crossing order')
+    print(f'facing: {len(warn)} parts turned away from the pin they serve, {len(order)} pairs in crossing order, '
+          f'{len(side_warn)} on the far side of their chip')
     return True
 
 
