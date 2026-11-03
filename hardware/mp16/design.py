@@ -455,8 +455,8 @@ SILK = []
 # along[, how far]). The two buttons sit side by side in the open bottom shell's window, each named on the
 # bottom beside it; the SWD pads above them.
 LABELS = [
-    ('RESET', (25.95, 26.5), 'B', 0.9, 90, 'y', 0.5),
-    ('BOOT', (31.15, 26.5), 'B', 0.9, 90, 'y', 0.5),
+    ('RESET', (23.4, 30.1), 'B', 0.9, 0, 'x', 0.8),
+    ('BOOT', (28.6, 30.1), 'B', 0.9, 0, 'x', 0.8),
     ('SWD', (28.4, 22.6), 'B', 0.7, 0, 'xy', 2.5),  # pads TP1-TP3 = SWCLK, SWDIO, GND (README)
     (('PATS MP-16 rev 2', 'MP-16 rev 2'), (38.1, 102.0), 'B', 1.0, 0, 'xy', 6.0),
 ]
