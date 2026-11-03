@@ -472,6 +472,14 @@ def route():
            'settings': buildlog.settings(
                design, float(os.environ.get('ROUTE_CLEARANCE_MARGIN', getattr(design, 'ROUTE_CLEARANCE_MARGIN', 0.02))),
                int(os.environ.get('ROUTE_PASSES', str(getattr(design, 'ROUTE_PASSES', 30)))), int(os.environ.get('ROUTE_TIMEOUT', '900')), FREEROUTING)}
+    if not rec['note'] and not QUICK and not os.environ.get('ROUTE_CONTINUE'):
+        print('route: set ROUTE_NOTE="what this run tests" (and run build.py <board> preflight first)')
+        return False
+    try:
+        from congestion import analyse
+        rec['congestion'] = analyse(PCB)['score']  # the placement's score before routing (tools/congestion.py)
+    except Exception as e:  # never stop a route over the estimate
+        print(f'route: congestion estimate failed: {e}')
     t0, ok = time.time(), False
     import signal
 
@@ -926,6 +934,29 @@ def review():
     return ok
 
 
+def preflight():
+    """Before a route run (seconds): placement checks, the congestion score against the last route run's,
+    the windows where demand exceeds room, and what the last run left open, so each run starts from a
+    prepared change instead of a guess. Prints a verdict; route refuses to run without ROUTE_NOTE."""
+    import buildlog
+    from congestion import analyse, report
+    ok = courtyards() and bodies() and facing()
+    res = analyse(PCB)
+    report(res)
+    routes = [r for r in buildlog.records(NAME) if r['type'] == 'route' and r.get('congestion') is not None]
+    if routes:
+        last = routes[-1]
+        delta = res['score'] - last['congestion']
+        print(f'preflight: congestion {res["score"]} vs {last["congestion"]} in the last route run '
+              f'({last["time"][:16]}, {last.get("note") or "no note"}): {"better" if delta < 0 else "worse" if delta > 0 else "same"}'
+              f' by {abs(delta):.1f}')
+        left = sorted(set((last.get('finish') or {}).get('failed', [])) | set(n for n in (last.get('open_final') or {}) if n != 'GND'))
+        if left:
+            print(f'preflight: the last run left open {", ".join(left)}: does this change address each?')
+    print('preflight: run with ROUTE_NOTE="..." and add a row to the routing journal first')
+    return ok
+
+
 def log():
     """Route runs of this board from the build log, with their DRC and review results."""
     import buildlog
@@ -947,7 +978,7 @@ def quick():
     return ok
 
 
-STEPS = {'quick': quick, 'check': check, 'sch': sch, 'pcb': pcb, 'route': route, 'finish': finish, 'drc': drc, 'review': review,
+STEPS = {'quick': quick, 'preflight': preflight, 'check': check, 'sch': sch, 'pcb': pcb, 'route': route, 'finish': finish, 'drc': drc, 'review': review,
          'fab': fab, 'log': log}
 
 if __name__ == '__main__':
