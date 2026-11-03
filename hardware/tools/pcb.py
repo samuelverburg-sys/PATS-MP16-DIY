@@ -37,7 +37,12 @@ def place_on_targets(fp, p, base):
 
 def build(design, fp_path, path):
     board = pcbnew.CreateEmptyBoard()
-    board.SetCopperLayerCount(2)
+    layers = getattr(design, 'LAYERS', 2)
+    board.SetCopperLayerCount(layers)
+    # 4 layers: the inner layers are planes (design.PLANES: layer -> net), typed as power layers so the
+    # Specctra export marks them as planes and Freerouting routes only on the outer layers.
+    for name in getattr(design, 'PLANES', {}):
+        board.SetLayerType(board.GetLayerID(name), pcbnew.LT_POWER)
     ds = board.GetDesignSettings()
     # JLCPCB standard 2-layer capabilities are finer than this; these leave margin.
     ds.m_TrackMinWidth = MM(getattr(design, 'MIN_TRACK', 0.15))
@@ -114,6 +119,23 @@ def build(design, fp_path, path):
         z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)  # drop unconnected pour fragments
         z.SetThermalReliefGap(MM(0.3))
         z.SetThermalReliefSpokeWidth(MM(0.4))
+        ol = z.Outline()
+        ol.NewOutline()
+        for c in corners:
+            ol.Append(P(*c))
+        board.Add(z)
+
+    # Inner planes (4 layers): one solid zone per plane over the whole board.
+    for name, net in getattr(design, 'PLANES', {}).items():
+        z = pcbnew.ZONE(board)
+        ls = pcbnew.LSET()
+        ls.AddLayer(board.GetLayerID(name))
+        z.SetLayerSet(ls)
+        z.SetNetCode(nets[net].GetNetCode())
+        z.SetLocalClearance(MM(0.3))
+        z.SetMinThickness(MM(0.25))
+        z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+        z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
         ol = z.Outline()
         ol.NewOutline()
         for c in corners:

@@ -77,13 +77,13 @@ for i, (name, (x, y)) in enumerate(keys):
     lx, ly = x + LED_OFFSET[0], y + LED_OFFSET[1]
     add(f'D{i + 1}', 'LED:SK6812', 'PATS:LED_SK6812MINI-E_3.2x2.8mm_P1.5mm_ReverseMount', 'SK6812MINI-E',
         {'1': 'GND', '2': f'LED_D{i}', '3': 'VLED', '4': f'LED_D{i + 1}' if i < len(keys) - 1 else None},
-        (lx, ly), 0, 'B', block='leds', mpn='SK6812MINI-E', lcsc='C9900001298')
+        (lx, ly), 0, 'B', block='leds', mpn='SK6812MINI-E', lcsc='C5149201')
     cap(f'C{i + 1}', '100n', 'VLED', 'GND', (lx - 5.0, ly), 90, block='leds', lcsc='C14663')
 
 # LED data: 3.3 V from GPIO2 -> 74AHCT1G125 powered from VLED (5 V) -> 33 R -> Shift's LED.
 add('U4', '74xGxx:74AHCT1G125', 'Package_TO_SOT_SMD:SOT-23-5', '74AHCT1G125',
     {'1': 'GND', '2': 'LED_DATA', '3': 'GND', '4': 'LED_DRV', '5': 'VLED'}, (59.0, 19.2), 90, 'B',
-    block='leds', mpn='74AHCT1G125GV', lcsc='C12494', note='3.3 V -> 5 V level shifter for the LED data line')
+    block='leds', mpn='74AHCT1G125GV', lcsc='C52140417', note='3.3 V -> 5 V level shifter for the LED data line')
 res0402('R1', '33', 'LED_DRV', 'LED_D0', (59.6, 22.4), 0, block='leds')
 cap0402('C18', '100n', 'VLED', 'GND', (57.5, 22.4), 0, block='leds')
 
@@ -251,7 +251,7 @@ add('F1', 'Device:Polyfuse', 'Fuse:Fuse_1206_3216Metric', '1.5A hold', {'1': 'VB
     note='short-circuit protection for the USB port; the charger limits normal input current to 1.3 A')
 add('U12', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'USB_DP', '6': 'USB_DP', '3': 'USB_DN', '4': 'USB_DN', '2': 'GND', '5': 'VBUS'},
-    (46.0, 7.2), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C7519')
+    (46.0, 7.2), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C2687116')
 res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (37.6, TOP_Y), 90, block='mcu', note='USB series, RP2040 design guide')
 res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (36.6, TOP_Y), 90, block='mcu')
 
@@ -266,16 +266,16 @@ add('U13', 'Battery_Management:BQ24074RGT', 'Package_DFN_QFN:VQFN-16-1EP_3x3mm_P
     'BQ24074', {'13': 'VBUS', '10': 'VSYS', '11': 'VSYS', '2': 'VBAT', '3': 'VBAT', '1': 'TS', '4': 'GND',
                 '5': 'VSYS', '6': 'GND', '7': 'PGOOD_N', '9': 'CHG_N', '8': 'GND', '17': 'GND',
                 '12': 'ILIM', '14': None, '15': 'ITERM', '16': 'ISET'},
-    (53.8, 27.4), 0, 'B', block='power', mpn='BQ24074RGTR', lcsc='C54313',
+    (53.8, 27.4), 0, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
     note='EN2=1, EN1=0: input limit set by ILIM; /CE=0: charging on; TMR open: default safety timers')
 cap0402('C50', '1u', 'VBUS', 'GND', (50.4, 24.6), 0, block='power')
 cap('C51', '10u', 'VSYS', 'GND', (57.6, 25.6), 90, block='power')
-cap('C52', '10u', 'VBAT', 'GND', (53.8, 30.35), 0, block='power')
+cap('C52', '10u', 'VBAT', 'GND', (54.4, 30.35), 0, block='power')
 res0402('R20', '3k', 'ISET', 'GND', (50.4, 26.4), 0, block='power', note='charge current 890/R = 0.30 A')
 res0402('R21', '1k', 'ILIM', 'ILIM_R', (50.4, 27.8), 0, block='power',
     note='input current limit: R21 + R22 = 1.18k, 1550/R = 1.3 A')
-res0402('R22', '180', 'ILIM_R', 'GND', (50.4, 29.2), 0, block='power')
-res0402('R23', '4.12k', 'ITERM', 'GND', (50.4, 30.4), 0, block='power', note='as TI typical application')
+res0402('R22', '180', 'ILIM_R', 'GND', (50.4, 29.05), 0, block='power')
+res('R23', '4.12k', 'ITERM', 'GND', (51.0, 30.35), 0, block='power', lcsc='C2960702', note='as TI typical application')
 res0402('R24', '10k', 'TS', 'GND', (57.6, 29.2), 90, block='power',
     note='fixed 10k: no temperature sensing (generic packs have no NTC)')
 add('D20', 'Device:LED', 'PATS:LED_SideView_XL-1606_RD', 'charge', {'1': 'LED_CHG', '2': 'VBUS'},
@@ -381,7 +381,7 @@ res0402('R42', '33', '+3V3', 'MIDI_OUT_R', (46.0, 3.2), 0, block='midi')
 res0402('R43', '10', 'MIDI_TX', 'MIDI_OUT_T', (54.6, 12.6), 0, block='midi')
 add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'MIDI_OUT_R', '6': 'MIDI_OUT_R', '3': 'MIDI_OUT_T', '4': 'MIDI_OUT_T', '2': 'GND', '5': '+3V3'},
-    (61.4, 4.4), 90, 'B', block='midi', mpn='USBLC6-2SC6', lcsc='C7519', note='ESD on the MIDI Out jack')
+    (61.4, 4.4), 90, 'B', block='midi', mpn='USBLC6-2SC6', lcsc='C2687116', note='ESD on the MIDI Out jack')
 
 # ---------------------------------------------------------------------------
 # Expansion header (2x6, 2.54 mm, through-hole; fit it on the side the add-on needs): 4 analog inputs,
@@ -404,13 +404,21 @@ for i, (x, y) in enumerate(MP16_HOLES):
 
 # Wide (0.6 mm) power nets. +3V3 and VDD_CORE are not among them: they carry < 100 mA and must reach the
 # RP2040's 0.2 mm pads (0.4 mm pitch), the 74HC165s' 0.65 mm pitch and 0402 parts; they are 'Supply' below.
-POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'VLED', 'SW_LED'}
+POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'SW_LED'}
+# 4 layers (2026-11-03): on 2 layers the router left 49 connections open after Freerouting (KiCad's own
+# count), all over the board: ~300 ground pads and the 40 LED-supply pads competed with every signal.
+# Inner layer 1 is a solid ground plane, inner layer 2 the LED supply (VLED, every key cell has an LED);
+# their pads get a via straight down (tools/fanout.py) and the router never sees them. +3V3 stays a routed
+# 0.2 mm net (Supply). JLCPCB 4-layer standard stackup; same 0.127 mm / 0.3 mm rules.
+LAYERS = 4
+PLANES = {'In1.Cu': 'GND', 'In2.Cu': 'VLED'}
 NETCLASSES = {
     # The RP2040's 0.4 mm-pitch pins: 0.15 mm tracks.
     'Fine': (0.15, sorted({n for n in rp.values() if n} - {'GND', '+3V3', 'VDD_CORE'})),
     'Medium': (0.4, ['VBUS', 'VSYS', 'VBAT']),  # the BQ24074's 0.5 mm-pitch power pins
     'Usb': (0.2, ['USB_DP', 'USB_DN']),
-    'Supply': (0.2, ['+3V3', 'VDD_CORE']),  # into fine-pitch pins; 0.2 mm carries far more than they need
+    'Supply': (0.2, ['+3V3', 'VDD_CORE']),
+    'Plane': (0.6, ['VLED']),  # on inner layer 2: fanned out to vias, not routed  # into fine-pitch pins; 0.2 mm carries far more than they need
     'Ground': (0.3, ['GND']),
 }
 # Freerouting does not honour the class split on this board (the power stage got every net), so power and
@@ -425,7 +433,7 @@ GND_FANOUT = True
 GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground pads to the top pour
 GND_STITCH = 4.0
 DECOUPLED = {'VDD_CORE', 'VBAT_GAUGE'}
-ESCAPE = ['U10']  # locked escape stubs out of the RP2040's 0.4 mm pin field before routing (tools/fanout.py)
+# No escape stubs: with them, quick mode left more open than without (2026-11-03).
 SILK = []
 # Silkscreen labels (tools/silk.py): (text or alternatives, near (x, y), sides, height mm, rotation, may move
 # along[, how far]). The two buttons sit side by side in the open bottom shell's window, each named on the

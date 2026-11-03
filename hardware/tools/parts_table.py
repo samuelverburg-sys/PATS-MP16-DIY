@@ -18,12 +18,17 @@ REV1 = {'C41430893', 'C9900001298', 'C143790', 'C5248080', 'C17701688', 'C291151
 PATS = {'C14663', 'C1589', 'C45783', 'C23140', 'C25804', 'C29718', 'C80696', 'C12494', 'C15849', 'C1588',
         'C8678', 'C5144883', 'C23162', 'C23186', 'C4177', 'C859051', 'C22843', 'C25803', 'C21189', 'C23242',
         'C7519', 'C54313', 'C2682616', 'C2681320', 'C84817', 'C72443', 'C51118', 'C165948'}
+# Confirmed by Samuel from his JLCPCB BOM exports for the PATS boards (PATS ORDERING-CHECKLIST.md, 2026-10-28)
+SAMUEL = {'C5149201', 'C52140417', 'C2687116', 'C2861252', 'C2960702', 'C57112', 'C21190', 'C22828', 'C347476',
+          'C916396', 'C182189', 'C965799', 'C108301'}
 WEB = {'C97521': '2026-10-22', 'C150470': '2026-10-22', 'C20625731': '2026-10-22'}
 
 
 def source(lcsc):
     if not lcsc:
         return 'none: choose a part'
+    if lcsc in SAMUEL:
+        return 'Samuel (PATS BOM exports)'
     if lcsc in REV1:
         return 'rev-1 BOM'
     if lcsc in PATS:

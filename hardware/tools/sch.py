@@ -18,8 +18,17 @@ BLOCK_TITLES = {
 BLOCK_ORDER = ['power', 'mcu', 'audio', 'storage', 'modules', 'input', 'keys', 'leds', 'connectors', 'mech']
 
 
-def U():
-    return str(_uuid.uuid4())
+NS = _uuid.UUID('7b1f3c52-0d8e-4c6a-9a51-3e2f9b6d4c10')
+_used = {}
+
+
+def U(*key):
+    """A UUID derived from what the item is (its kind, part, pin, net, position), so the same design
+    writes a byte-identical schematic and a change touches only the items it changes."""
+    k = '|'.join(str(x) for x in key)
+    n = _used.get(k, 0)
+    _used[k] = n + 1
+    return str(_uuid.uuid5(NS, f'{k}|{n}'))
 
 
 def snap(v):
@@ -46,7 +55,8 @@ def bbox(pins):
 
 
 def write(parts, path, project, title):
-    root = U()
+    _used.clear()
+    root = U('root', title)
     lib_syms = {}
     body = []
     by_block = {}
@@ -60,7 +70,7 @@ def write(parts, path, project, title):
         if not items:
             continue
         body.append([Sym('text'), BLOCK_TITLES.get(block, block), [Sym('at'), 20.0, cursor_y, 0],
-                     eff(size=3.0, justify=['left', 'bottom']), [Sym('uuid'), U()]])
+                     eff(size=3.0, justify=['left', 'bottom']), [Sym('uuid'), U('text', block)]])
         cursor_y += 8.0
         x, row_h = 20.0, 0.0
         for p in items:
@@ -80,12 +90,12 @@ def write(parts, path, project, title):
                 net = p.pins.get(num)
                 ax, ay = sx + px, sy - py
                 if net is None:
-                    body.append([Sym('no_connect'), [Sym('at'), ax, ay], [Sym('uuid'), U()]])
+                    body.append([Sym('no_connect'), [Sym('at'), ax, ay], [Sym('uuid'), U('nc', p.ref, num)]])
                 else:
                     angle = (pin_angle(sym, num) + 180) % 360
                     just = ['right', 'bottom'] if angle in (180, 270) else ['left', 'bottom']
                     body.append([Sym('label'), net, [Sym('at'), ax, ay, angle], [Sym('fields_autoplaced')],
-                                 eff(justify=just), [Sym('uuid'), U()]])
+                                 eff(justify=just), [Sym('uuid'), U('label', p.ref, num, net)]])
             x += w
             row_h = max(row_h, h)
         cursor_y += row_h + 12.0
@@ -112,7 +122,7 @@ def place_symbol(p, sym, pins, sx, sy, project, root):
     x0, x1, y0, y1 = bbox(pins)
     s = [Sym('symbol'), [Sym('lib_id'), p.symbol], [Sym('at'), sx, sy, 0], [Sym('unit'), 1],
          [Sym('in_bom'), Sym('yes')], [Sym('on_board'), Sym('yes')], [Sym('dnp'), Sym('yes' if p.dnp else 'no')],
-         [Sym('uuid'), U()],
+         [Sym('uuid'), U('symbol', p.ref)],
          prop('Reference', p.ref, sx, sy - y1 - 3.0),
          prop('Value', p.value, sx, sy - y0 + 3.0),
          prop('Footprint', p.footprint, sx, sy, hide=True),
@@ -121,7 +131,7 @@ def place_symbol(p, sym, pins, sx, sy, project, root):
     if p.note:
         s.append(prop('Note', p.note, sx, sy, hide=True))
     for num in sorted({n for n, *_ in pins}):
-        s.append([Sym('pin'), num, [Sym('uuid'), U()]])
+        s.append([Sym('pin'), num, [Sym('uuid'), U('pin', p.ref, num)]])
     s.append([Sym('instances'), [Sym('project'), project,
                                  [Sym('path'), '/' + root, [Sym('reference'), p.ref], [Sym('unit'), 1]]]])
     return s

@@ -332,6 +332,39 @@ def restore(board, snap):
         board.Add(v)
 
 
+def open_nets_report(board, nets=None, skip=None):
+    """What KiCad itself sees as unconnected (Freerouting's log lists open nets only some of the time):
+    {net: [pieces]}, each piece a list of (item, x, y) in the design frame (mm), from KiCad's DRC
+    (under a second on this board). `nets` limits the report; ground is skipped (pours carry it)."""
+    import re
+    import pcbnew
+    if skip is None:  # ground and the plane nets: their pours and planes are only filled at the end
+        skip = {'GND'} | set(getattr(design, 'PLANES', {}).values())
+    rpt = os.path.join(BUILD, 'open.rpt')
+    pcbnew.WriteDRCReport(board, rpt, pcbnew.EDA_UNITS_MILLIMETRES, False)
+    out = collections.defaultdict(list)
+    for item in re.split(r'\n(?=\[)', open(rpt).read()):
+        if not item.startswith('[unconnected_items]'):
+            continue
+        ends = [(re.sub(r' on [BF]\.Cu.*| of ', lambda m: ' of ' if m.group(0) == ' of ' else '', d.strip())[:40],
+                 round(float(x) - 40.0, 2), round(float(y) - 30.0, 2))
+                for x, y, d in re.findall(r'@\(([-\d.]+) mm, ([-\d.]+) mm\): (.*)', item)]
+        names = set(re.findall(r'\[([^\]]+)\] (?:of|on)', item))
+        if len(names) != 1:
+            continue
+        n = names.pop()
+        if n in skip or (nets is not None and n not in nets):
+            continue
+        out[n].append(ends)
+    return dict(out)
+
+
+def print_open(report, prefix='route'):
+    for n, gaps in sorted(report.items()):
+        print(f'{prefix}: OPEN {n}: ' + '; '.join(' <-> '.join(f'{d} ({x:.1f},{y:.1f})' for d, x, y in g)
+                                                  for g in gaps[:3]) + (' ...' if len(gaps) > 3 else ''))
+
+
 def freerouting(board, ignore, tag, edit=None):
     """Export `board` (pours already removed), run Freerouting skipping the `ignore` classes,
     return the session path, or None. `edit` may rewrite the DSN text first."""
@@ -410,7 +443,10 @@ def route():
         if ok:
             rec['pcb'] = buildlog.sha(PCB)
         buildlog.append(rec)
-        print(f'route: {rec["s"] / 60:.1f} min; logged to {os.path.relpath(buildlog.LOG)}')
+        parts = [('prep', rec.get('prep_s'))] + [(f'stage {st["name"]}', st['s']) for st in rec['stages']] + \
+            sorted((rec.get('phases') or {}).items(), key=lambda kv: list((rec.get('phases') or {})).index(kv[0]))
+        print('route: time ' + ', '.join(f'{k} {v} s' for k, v in parts if v is not None)
+              + f'; total {rec["s"] / 60:.1f} min; logged to {os.path.relpath(buildlog.LOG)}')
     return ok
 
 
@@ -440,7 +476,10 @@ def _route(rec):
     # Export without the GND pours: otherwise GND is treated as a plane and never routed, and a
     # fragmented pour leaves pads unconnected. Pours are refilled at the end.
     # Pour-only keep-outs (POUR_KEEPOUT) go too: the DSN export would turn them into full keep-outs.
-    pours = [z for z in board.Zones() if not z.GetIsRuleArea() or
+    # Inner-layer planes (design.PLANES) stay: exported as Specctra planes, they keep Freerouting off
+    # those layers (a power-type layer without its plane was routed on) and connect their nets' vias.
+    inner = {board.GetLayerID(n) for n in getattr(design, 'PLANES', {})}
+    pours = [z for z in board.Zones() if (not z.GetIsRuleArea() and not (set(z.GetLayerSet().Seq()) & inner)) or
              (z.GetDoNotAllowCopperPour() and not z.GetDoNotAllowTracks())]
     for z in pours:
         board.Remove(z)
@@ -452,10 +491,13 @@ def _route(rec):
             board.Remove(t)
         if fan:  # ground via beside every top-side ground pad; the Ground class is then not routed
             from fanout import fanout
-            items, failed = fanout(board, at=getattr(design, 'GND_FANOUT_VIA', {}), side=getattr(design, 'GND_FANOUT_SIDE', 'F'))
-            for t in items:
-                t.SetLocked(True)
-            print(f'route: ground fan-out {len(items)} items' + (f'; no room at {", ".join(failed)}' if failed else ''))
+            for fnet in ['GND'] + [n for n in getattr(design, 'PLANES', {}).values() if n != 'GND']:
+                items, failed = fanout(board, net=fnet, at=getattr(design, 'GND_FANOUT_VIA', {}),
+                                       side=getattr(design, 'GND_FANOUT_SIDE', 'F'))
+                for t in items:
+                    t.SetLocked(True)
+                print(f'route: {fnet} fan-out {len(items)} items' + (f'; no room at {", ".join(failed)}' if failed else ''),
+                      flush=True)
         if getattr(design, 'ESCAPE', None):  # locked escape stubs from the fine-pitch parts' signal pins
             from fanout import escapes
             stubs = escapes(board, design.ESCAPE)
@@ -525,9 +567,11 @@ def _route(rec):
                     if not t.IsLocked():
                         board.Remove(t)
                 import_ses(board, ses, min_w)
-                unrouted = {m: int(c) for m, c in re.findall(r"Net '([^']+)' \((\d+) unrouted", log) if m in stage_nets}
-                open_nets = sorted(unrouted)
-                score = sum(unrouted.values())
+                # KiCad's own connectivity, not Freerouting's log (which lists open nets only sometimes:
+                # every stage here printed "all routed" while 10-39 pads stayed unconnected)
+                report = open_nets_report(board, stage_nets)
+                open_nets = sorted(report)
+                score = sum(len(v) for v in report.values())
                 attempt += 1
                 attempts.append({'margin': margin, 'round': round_, 'first': list(promoted), 'open': open_nets,
                                  's': round(time.time() - t_attempt)})
@@ -558,7 +602,8 @@ def _route(rec):
                               'open': open_nets, 's': round(time.time() - t_stage), 'tries': attempts})
         print(f'route: stage {i + 1} {name} ({", ".join(sorted(want or only))}): {len(stage_nets)} nets'
               + (f'; first: {", ".join(promoted)}' if promoted else '')
-              + (f'; open: {", ".join(open_nets)}' if open_nets else '; all routed'))
+              + (f'; open: {", ".join(open_nets)}' if open_nets else '; all routed')
+              + f' ({round(time.time() - t_stage)} s)', flush=True)
     for t in board.GetTracks():
         t.SetLocked(False)
     tiny = [t for t in board.GetTracks() if t.GetClass() == 'PCB_TRACK' and t.GetLength() < pcbnew.FromMM(0.005)]
@@ -573,12 +618,20 @@ def _route(rec):
         board.Add(z)
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     board.BuildConnectivity()
-    left = board.GetConnectivity().GetUnconnectedCount(False)
     rec['phases'] = phases = {}
     t_phase = time.time()
-    if left:
+    report = open_nets_report(board)
+    rec['open_after_router'] = {n: len(v) for n, v in report.items()}
+    print(f'route: after Freerouting {sum(len(v) for v in report.values())} connections open in '
+          f'{len(report)} nets ({round(time.time() - t_route)} s so far)', flush=True)
+    print_open(report)
+    if QUICK:  # placement iteration: the router's answer is all that is needed (build.py <board> quick)
+        pcbnew.SaveBoard(PCB, board)
+        rec['quick'] = True
+        return not report
+    if report:
         from finish import finish as run
-        done, failed = run(board, getattr(design, 'CLEARANCE', 0.2) + 0.02, None,
+        done, failed = run(board, getattr(design, 'CLEARANCE', 0.2) + 0.02, sorted(report),
                            {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
                            keep=NO_RIPUP())
         rec['finish'] = {'joined': done, 'failed': failed}
@@ -673,24 +726,70 @@ def drc():
     return not errors and not unconnected
 
 
+# Where JLCPCB's part sits relative to our footprint's origin, in the footprint's own frame (mm, y down,
+# as in the .kicad_mod), for footprints whose origin is not the middle of the part JLCPCB places.
+# MX-Hotswap-1U: the origin is the key switch's centre; the Kailh socket's body is centred between its
+# two 3 mm holes, (-2.54, -5.08) and (3.81, -2.54). Found in JLCPCB's placement preview, 2026-10-27:
+# the sockets lined up after moving them by exactly this (-0.635, +3.81 mm in the CPL on the bottom).
+CPL_OFFSETS = {'MX-Hotswap-1U': (0.635, -3.81)}
+
+
+def cpl_position(footprint, x, y, rot, bottom):
+    """KiCad's position export (y up) moved by the footprint's CPL offset. KiCad flips a bottom-side
+    footprint about its X axis, then rotates it by `rot` (counter-clockwise)."""
+    import math
+    lx, ly = CPL_OFFSETS.get(footprint, (0.0, 0.0))
+    if bottom:
+        ly = -ly
+    a = math.radians(rot)
+    dx = lx * math.cos(a) + ly * math.sin(a)          # board frame, y down
+    dy = -lx * math.sin(a) + ly * math.cos(a)
+    return round(x + dx, 6), round(y - dy, 6)          # the export's y points up
+
+
 def fab():
     import csv
+    import json
+    import re
     import shutil
     import subprocess
     import zipfile
     out = os.path.join(HERE, 'fab')
     gerb = os.path.join(out, 'gerbers')
-    shutil.rmtree(out, ignore_errors=True)
+    # Only what this step writes: the board views (top/bottom .png/.pdf, tools/render.sh) stay.
+    shutil.rmtree(gerb, ignore_errors=True)
+    for f in (NAME + '-gerbers.zip', NAME + '-bom.csv', NAME + '-cpl.csv', 'pos.csv'):
+        if os.path.exists(os.path.join(out, f)):
+            os.remove(os.path.join(out, f))
     os.makedirs(gerb)
-    layers = 'F.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,Edge.Cuts'
+    inner = ''.join(f'In{k}.Cu,' for k in range(1, getattr(design, 'LAYERS', 2) - 1))
+    layers = f'F.Cu,{inner}B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,Edge.Cuts'
     run = lambda *a: subprocess.run(['kicad-cli', 'pcb', 'export', *a], check=True, capture_output=True)
     run('gerbers', '--layers', layers, '--subtract-soldermask', '-o', gerb + '/', PCB)
     run('drill', '--format', 'excellon', '--excellon-separate-th', '--generate-map', '--map-format', 'gerberx2',
         '-o', gerb + '/', PCB)
+    # Same board, same files: drop the export time KiCad writes into every file (the optional X2
+    # CreationDate attribute and the date in the header comments), and give the zip entries a fixed
+    # time, so a rebuild of an unchanged board leaves the order files byte-identical.
+    for f in sorted(os.listdir(gerb)):
+        fp = os.path.join(gerb, f)
+        if f.endswith('.gbrjob'):
+            job = json.load(open(fp))
+            job.get('Header', {}).pop('CreationDate', None)
+            open(fp, 'w').write(json.dumps(job, indent=2) + '\n')
+            continue
+        lines = open(fp, newline='').read().split('\n')
+        lines = [l for l in lines if 'TF.CreationDate' not in l]
+        lines = [re.sub(r' date .*?(\*?)$', r'\1', l) if l.startswith(('G04 Created by KiCad', '; DRILL file')) else l
+                 for l in lines]
+        open(fp, 'w', newline='').write('\n'.join(lines))
     zpath = os.path.join(out, NAME + '-gerbers.zip')
     with zipfile.ZipFile(zpath, 'w', zipfile.ZIP_DEFLATED) as z:
         for f in sorted(os.listdir(gerb)):
-            z.write(os.path.join(gerb, f), f)
+            info = zipfile.ZipInfo(f, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            z.writestr(info, open(os.path.join(gerb, f), 'rb').read())
     pos = os.path.join(out, 'pos.csv')
     run('pos', '--side', 'both', '--format', 'csv', '--units', 'mm', '--smd-only', '-o', pos, PCB)
     parts = {p.ref: p for p in design.parts}
@@ -704,8 +803,9 @@ def fab():
             p = parts.get(ref)
             if not p or p.dnp or ref.startswith(('H', 'TP')):
                 continue
-            w.writerow([ref, row['PosX'] + 'mm', row['PosY'] + 'mm', 'Top' if row['Side'] == 'top' else 'Bottom',
-                        row['Rot']])
+            x, y = cpl_position(p.footprint.split(':')[1], float(row['PosX']), float(row['PosY']), float(row['Rot']),
+                                row['Side'] != 'top')
+            w.writerow([ref, f'{x:.6f}mm', f'{y:.6f}mm', 'Top' if row['Side'] == 'top' else 'Bottom', row['Rot']])
             placed.append(ref)
     groups = collections.OrderedDict()
     for ref in placed:
@@ -740,7 +840,21 @@ def log():
     return True
 
 
-STEPS = {'check': check, 'sch': sch, 'pcb': pcb, 'route': route, 'finish': finish, 'drc': drc, 'review': review,
+QUICK = False
+
+
+def quick():
+    """Placement iteration in minutes: route with Freerouting only (ROUTE_PASSES, default 3 here), no
+    finish router, stitching or ground joining, then list what is open with pad positions (design frame)
+    and print where the time went. A board that is open here will not be saved by the finish router."""
+    global QUICK
+    QUICK = True
+    os.environ.setdefault('ROUTE_PASSES', '3')
+    ok = route()
+    return ok
+
+
+STEPS = {'quick': quick, 'check': check, 'sch': sch, 'pcb': pcb, 'route': route, 'finish': finish, 'drc': drc, 'review': review,
          'fab': fab, 'log': log}
 
 if __name__ == '__main__':
