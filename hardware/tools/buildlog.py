@@ -63,7 +63,7 @@ def settings(design, margin, passes, timeout, jar):
         'router': os.path.basename(jar),
         'optimizer': False,
         'layers': getattr(design, 'LAYERS', 2),
-        'preroute': {'mm': getattr(design, 'PREROUTE_MM', 0), 'first': list(getattr(design, 'PREROUTE_FIRST', ())),
+        'preroute': {'mm': getattr(design, 'PREROUTE_MM', 0), 'first': [e if isinstance(e, str) else f'{e[0]}:{e[1]}' for e in getattr(design, 'PREROUTE_FIRST', ())],
                      'first_mm': getattr(design, 'PREROUTE_FIRST_MM', None)},
         'parallel': int(os.environ.get('ROUTE_PARALLEL', getattr(design, 'ROUTE_PARALLEL', 0))),
         # the board's own experiment switches (MP-16: which side the RP2040's parts are on, ...)

@@ -395,7 +395,10 @@ def freerouting(board, ignore, tag, edit=None, margin=None, run=True):
     xs, ys = sorted(set(pts[0::2])), sorted(set(pts[1::2]))
     clear = float(re.search(r'\(clearance ([0-9.]+)\)', text).group(1))
     if len(xs) == 2 and len(ys) == 2 and edge > clear:
-        d = edge - clear + 0.08  # +0.08: Freerouting kept vias 0.24 mm from the edge with the exact inset
+        # Freerouting lets copper come within about (clearance - 0.07 mm) of the boundary, not `clearance`:
+        # with the inset edge - clear tracks ended 0.235 mm from the edge (rule 0.3). The DSN is in um, so
+        # the inset is the whole edge clearance + 20 um (an earlier '+ 0.08' meant 0.08 um and did nothing).
+        d = edge + 20
         box = [xs[0] + d, ys[0] + d, xs[1] - d, ys[1] - d]
         path = f'{box[2]:g} {box[1]:g}  {box[0]:g} {box[1]:g}  {box[0]:g} {box[3]:g}  {box[2]:g} {box[3]:g}  {box[2]:g} {box[1]:g}'
         text = text[:m.start(1)] + path + text[m.end(1):]

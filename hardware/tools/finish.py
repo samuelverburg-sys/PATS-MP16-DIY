@@ -6,6 +6,7 @@ grid A* search (0.05 mm grid, both layers, vias where the layer changes) around 
 other nets at the board's clearance. The bottom layer costs more, to keep the ground plane
 whole. Ground (poured) is skipped. Usage: build.py <board> finish.
 """
+import os
 import heapq
 import math
 
@@ -420,11 +421,14 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), 
     # Order (Samuel, 2026-11-03: priority by importance and distance, less left to chance): the nets named
     # in `first` (USB, crystal, flash, core supply) in that order with a longer reach (first_mm), then every
     # other net by its shortest hop, shortest first, so the short hops are never blocked by longer ones.
-    first = [n for n in first if n in nets]
+    # an entry of `first` may be (net, mm): its own reach (a single long signal, e.g. the charger's /PGOOD)
+    reach_of = {(e[0] if isinstance(e, (tuple, list)) else e): (e[1] if isinstance(e, (tuple, list)) else first_mm)
+                for e in first}
+    first = [n for n in reach_of if n in nets]
     rest = sorted((n for n in nets if n not in first), key=lambda n: (round(shortest(n), 3), n))
     joined, stuck = 0, set()
     for net in first + rest:
-        reach = first_mm if net in first else max_mm
+        reach = reach_of[net] if net in reach_of else max_mm
         tried = set()
         while True:
             groups = clusters([s for s in all_shapes if s.net == net])
@@ -454,7 +458,7 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), 
                 t.SetLocked(True)
             joined += 1
             all_shapes, holes = shapes(board)
-    print(f'prejoin: {joined} hops ({", ".join(first)} up to {first_mm} mm, others <= {max_mm} mm) routed and '
+    print(f'prejoin: {joined} hops ({", ".join(f"{n} {reach_of[n]:g}" for n in first)} mm, others <= {max_mm} mm) routed and '
           f'locked in {time.time() - t0:.0f} s'
           + (f'; could not: {", ".join(sorted(stuck))}' if stuck else ''), flush=True)
     return joined, sorted(stuck)
@@ -728,15 +732,22 @@ def join_ground(board, clearance, net='GND', keep=(), widths=None):
     """Route a track from each ground group cut off from the main plane to the main plane; where other
     nets' tracks fence a group in on both layers, rip up one of them (never one in `keep`) and reroute
     it. Groups that cannot be joined are skipped, so one hard case does not stop the rest."""
+    import time
     F, B = pcbnew.F_Cu, pcbnew.B_Cu
     grid = Grid(board, clearance)
     joined, skip = 0, set()
+    # Whole-step budget (GROUND_SECONDS, default 300): on the MP-16 it once ran 865 s and still left 2 areas.
+    t_end = time.time() + float(os.environ.get('GROUND_SECONDS', '300'))
     for _ in range(40):
         pcbnew.ZONE_FILLER(board).Fill(board.Zones())
         groups = ground_groups(board, net)
         key = lambda g: (round(nm(g['pieces'][0][1].BBox().Centre().x), 2), round(nm(g['pieces'][0][1].BBox().Centre().y), 2))
         todo = [g for g in groups[1:] if key(g) not in skip]
         if not todo:
+            break
+        if time.time() > t_end:
+            print(f'join_ground: time budget used up; cut off: ' + ', '.join(
+                f'({x - 40:.1f}, {y - 30:.1f})' for x, y in sorted(key(g) for g in todo)), flush=True)
             break
         main, small = groups[0], todo[-1]
         all_shapes, holes = shapes(board)
@@ -786,5 +797,6 @@ def join_ground(board, clearance, net='GND', keep=(), widths=None):
             joined += 1
             continue
         skip.add(key(small))
+        print(f'join_ground: area at ({key(small)[0] - 40:.1f}, {key(small)[1] - 30:.1f}) could not be joined', flush=True)
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     return joined, len(ground_groups(board, net)) - 1

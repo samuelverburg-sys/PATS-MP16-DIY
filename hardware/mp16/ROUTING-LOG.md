@@ -27,7 +27,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
 | 3 | RP2040 1 mm left (USB lane past the USB-C shell leg), ISET/ITERM swapped | 13 / 14 / 15 | 8 (USB pair, QSPI_SD3, RUN, VDD_CORE, ISET, AIN2, VSW) | not run | bottom-only is too crowded around the RP2040 on 2 layers |
 | 4 | **RP2040's capacitors, flash and crystal on the top side** (`MP16_MCU_SIDE=F`), under the OLED | 6 / 6 / 7 | 3 (ITERM, XOUT, a top GND pad) | **0 err** | big step: the bottom around the RP2040 is free for its signals; needs double-sided assembly |
 | 5 | as 4 + priority pre-route (USB, crystal, QSPI, VDD_CORE, ISET/ITERM up to 15 mm, then shortest first), R12 back on the bottom, ground fan-out on both sides | 10 / 13 / 9 | 6 (ENC_A, MIDI_RX/TX, PGOOD_N, SWCLK, VBUS_IN) | stopped | long priority routes (QSPI, VDD_CORE) wall in the GPIO pins: priority only for nets that failed repeatedly |
-| 6 | as 5 with priority only for USB, crystal, ISET/ITERM (up to 10 mm) | 6 / 7 / 7 | 1 (PGOOD_N) | pending | best so far |
+| 6 | as 5 with priority only for USB, crystal, ISET/ITERM (up to 10 mm) | 6 / 7 / 7 | 1 (PGOOD_N) + 2 ground islands | 3 err (VBUS 0.235 mm from the top edge) | best so far; the edge inset was in um, not mm (fixed); ground joining ran 865 s (budget added) |
+| 7 | as 6 + PGOOD_N pre-routed last (own reach 60 mm), edge inset = 0.3 mm + 20 um | | | | |
 
 ## What has been learnt
 

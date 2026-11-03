@@ -454,7 +454,8 @@ GND_FANOUT = True
 # between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
 PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ESD -> 27R -> RP2040
                   'XIN', 'XOUT', 'XTAL_OUT',                    # crystal
-                  'ISET', 'ITERM']                              # charger current setting
+                  'ISET', 'ITERM',                              # charger current setting
+                  ('PGOOD_N', 60.0)]                            # charger /PGOOD -> GPIO3, ~50 mm; last of all
 # Not QSPI and VDD_CORE: routed first up to 15 mm, their shortest paths walled in the RP2040's GPIO pins
 # (ENC_A, MIDI_RX/TX, PGOOD_N, SWCLK left open, 2026-11-03); Freerouting fits them in fine.
 PREROUTE_FIRST_MM = 10.0
