@@ -244,14 +244,14 @@ add('J3', 'Connector:USB_C_Receptacle_USB2.0_16P', 'Connector_USB:USB_C_Receptac
               'B1': 'GND', 'B12': 'GND', 'S1': 'GND', 'A5': 'CC1', 'B5': 'CC2', 'A6': 'USB_DP', 'B6': 'USB_DP',
               'A7': 'USB_DN', 'B7': 'USB_DN', 'A8': None, 'B8': None},
     (38.1, 3.9), 180, 'B', block='power', mpn='HRO TYPE-C-31-M-12', lcsc='C165948')
-res0402('R13', '5.1k', 'CC1', 'GND', (27.6, 1.2), 0, block='power')
-res0402('R14', '5.1k', 'CC2', 'GND', (27.6, 2.6), 0, block='power')
+res0402('R13', '5.1k', 'CC1', 'GND', (47.4, 5.0), 90, block='power')
+res0402('R14', '5.1k', 'CC2', 'GND', (47.4, 7.4), 90, block='power')
 add('F1', 'Device:Polyfuse', 'Fuse:Fuse_1206_3216Metric', '1.5A hold', {'1': 'VBUS_IN', '2': 'VBUS'},
-    (30.4, 5.4), 90, 'B', block='power', mpn='1206 PTC, 1.5 A hold, 6 V',
+    (44.8, 6.0), 90, 'B', block='power', mpn='1206 PTC, 1.5 A hold, 6 V',
     note='short-circuit protection for the USB port; the charger limits normal input current to 1.3 A')
 add('U12', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'USB_DP', '6': 'USB_DP', '3': 'USB_DN', '4': 'USB_DN', '2': 'GND', '5': 'VBUS'},
-    (46.0, 7.2), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C2687116')
+    (29.6, 5.0), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C2687116')
 res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (37.6, TOP_Y), 90, block='mcu', note='USB series, RP2040 design guide')
 res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (36.6, TOP_Y), 90, block='mcu')
 
@@ -266,17 +266,17 @@ add('U13', 'Battery_Management:BQ24074RGT', 'Package_DFN_QFN:VQFN-16-1EP_3x3mm_P
     'BQ24074', {'13': 'VBUS', '10': 'VSYS', '11': 'VSYS', '2': 'VBAT', '3': 'VBAT', '1': 'TS', '4': 'GND',
                 '5': 'VSYS', '6': 'GND', '7': 'PGOOD_N', '9': 'CHG_N', '8': 'GND', '17': 'GND',
                 '12': 'ILIM', '14': None, '15': 'ITERM', '16': 'ISET'},
-    (53.8, 27.4), 0, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
+    (56.0, 63.5), 0, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
     note='EN2=1, EN1=0: input limit set by ILIM; /CE=0: charging on; TMR open: default safety timers')
-cap0402('C50', '1u', 'VBUS', 'GND', (50.4, 24.6), 0, block='power')
-cap('C51', '10u', 'VSYS', 'GND', (57.6, 25.6), 90, block='power')
-cap('C52', '10u', 'VBAT', 'GND', (54.4, 30.35), 0, block='power')
-res0402('R20', '3k', 'ISET', 'GND', (50.4, 26.4), 0, block='power', note='charge current 890/R = 0.30 A')
-res0402('R21', '1k', 'ILIM', 'ILIM_R', (50.4, 27.8), 0, block='power',
+cap0402('C50', '1u', 'VBUS', 'GND', (52.6, 61.0), 90, block='power')
+cap('C51', '10u', 'VSYS', 'GND', (59.6, 61.4), 90, block='power')
+cap('C52', '10u', 'VBAT', 'GND', (59.6, 65.6), 90, block='power')
+res0402('R20', '3k', 'ISET', 'GND', (52.6, 63.4), 90, block='power', note='charge current 890/R = 0.30 A')
+res0402('R21', '1k', 'ILIM', 'ILIM_R', (52.6, 65.8), 90, block='power',
     note='input current limit: R21 + R22 = 1.18k, 1550/R = 1.3 A')
-res0402('R22', '180', 'ILIM_R', 'GND', (50.4, 29.05), 0, block='power')
-res('R23', '4.12k', 'ITERM', 'GND', (51.0, 30.35), 0, block='power', lcsc='C2960702', note='as TI typical application')
-res0402('R24', '10k', 'TS', 'GND', (57.6, 29.2), 90, block='power',
+res0402('R22', '180', 'ILIM_R', 'GND', (52.6, 68.0), 90, block='power')
+res('R23', '4.12k', 'ITERM', 'GND', (55.6, 67.9), 0, block='power', lcsc='C2960702', note='as TI typical application')
+res0402('R24', '10k', 'TS', 'GND', (55.6, 59.4), 0, block='power',
     note='fixed 10k: no temperature sensing (generic packs have no NTC)')
 add('D20', 'Device:LED', 'PATS:LED_SideView_XL-1606_RD', 'charge', {'1': 'LED_CHG', '2': 'VBUS'},
     side='B', block='power', pin_targets=REV1['CHARGE_LED'], mpn='XINGLIGHT XL-1606SURC', lcsc='C965860',
@@ -290,30 +290,34 @@ res0402('R25', '1.5k', 'LED_CHG', 'CHG_N', (64.8, 6.1), 0, block='power')
 # then sits above the gate) and charge the cell backwards; Q2 turns Q1 off whenever the battery pin is
 # below VBAT, so a reversed pack is blocked with or without USB. docs/decisions/0001-battery-reverse-protection.md
 # ---------------------------------------------------------------------------
+# The power section sits in the key area (2026-11-03): in the top band it shared 30 mm with the RP2040 and
+# the router left the RP2040's flash, LED and MIDI lines open. Charger between keys 7 and 8, load switch at
+# the right edge beside key 8, battery plug and protection between keys 11 and 12, gauge beside key 12.
+BATTERY_PINS = {'1': (59.2, 82.0), '2': (59.2, 80.0)}  # rev-1 orientation: body to the left of the pins
 add('J7', 'Connector_Generic:Conn_01x02', 'PATS:JST_PH_S2B-PH-K-S_Horizontal',
     'LiPo 1S (pin 1 = GND, pin 2 = +)', {'1': 'GND', '2': 'BATT_P'}, side='B', block='power',
-    pin_targets=REV1['BATTERY'], mpn='JST S2B-PH-K-S(LF)(SN)', lcsc='C173752',
-    note='rev-1 part, position and pinout; through-hole')
+    pin_targets=BATTERY_PINS, mpn='JST S2B-PH-K-S(LF)(SN)', lcsc='C173752',
+    note='rev-1 part and pinout; through-hole; between keys 11 and 12 (moved from the top band, Samuel ok)')
 add('Q1', 'Device:Q_PMOS_GSD', 'Package_TO_SOT_SMD:SOT-23', 'DMG2305UX', {'1': 'Q1_G', '2': 'VBAT', '3': 'BATT_P'},
-    (70.4, 25.0), 90, 'B', block='power', mpn='DMG2305UX-7', lcsc='C150470',
+    (53.6, 86.3), 0, 'B', block='power', mpn='DMG2305UX-7', lcsc='C150470',
     note='-20 V, 4.2 A, 52 mOhm at -4.5 V; body diode from the battery to VBAT')
-res0402('R26', '100k', 'Q1_G', 'GND', (70.9, 22.4), 0, block='power')
+res0402('R26', '100k', 'Q1_G', 'GND', (72.6, 85.6), 0, block='power')
 add('Q2', 'Transistor_BJT:MMBT3906', 'Package_TO_SOT_SMD:SOT-23', 'MMBT3906', {'1': 'Q2_B', '2': 'VBAT', '3': 'Q1_G'},
-    (70.4, 28.9), 90, 'B', block='power', mpn='MMBT3906', lcsc='C2940',
+    (58.0, 86.3), 0, 'B', block='power', mpn='MMBT3906', lcsc='C2940',
     note='pulls Q1 gate to VBAT (off) while the battery pin is below VBAT')
-res0402('R27', '100k', 'Q2_B', 'BATT_P', (73.0, 22.4), 0, block='power')
+res0402('R27', '100k', 'Q2_B', 'BATT_P', (72.6, 87.2), 0, block='power')
 
 # Fuel gauge on VBAT (after the protection, before the switch): keeps tracking while switched off.
 add('U15', 'PATS:MAX17048', 'Package_DFN_QFN:TDFN-8-1EP_2x2mm_P0.5mm_EP0.8x1.2mm', 'MAX17048',
     {'1': 'GND', '2': 'VBAT_GAUGE', '3': 'VBAT_GAUGE', '4': 'GND', '5': 'GAUGE_ALRT', '6': 'GND', '7': 'I2C_SCL',
      '8': 'I2C_SDA', '9': 'GND'},
-    (73.0, 17.0), 0, 'B', block='power', mpn='MAX17048G+T10', lcsc='C2682616',
+    (73.4, 80.0), 0, 'B', block='power', mpn='MAX17048G+T10', lcsc='C2682616',
     note='I2C 0x36: battery %, charge rate (charging = positive rate)')
-cap0402('C53', '100n', 'VBAT_GAUGE', 'GND', (73.0, 19.4), 0, block='power')
-res0402('R28', '0', 'VBAT', 'VBAT_GAUGE', (73.0, 20.6), 0, block='power',
+cap0402('C53', '100n', 'VBAT_GAUGE', 'GND', (73.4, 82.6), 0, block='power')
+res0402('R28', '0', 'VBAT', 'VBAT_GAUGE', (73.4, 84.0), 0, block='power',
     note='gauge supply/sense link; remove to isolate the gauge')
 add('TP4', 'Connector:TestPoint', 'TestPoint:TestPoint_Pad_D1.0mm', 'GAUGE_ALRT', {'1': 'GAUGE_ALRT'},
-    (75.0, 22.4), 0, 'B', block='power')
+    (75.3, 87.0), 0, 'B', block='power')
 
 # On/off: slide switch at the rev-1 position -> TPS22917 load switch -> VSW. Charging works with the
 # switch off; everything after the load switch (RP2040, LEDs, OLED) is off with it.
@@ -321,13 +325,13 @@ add('SW20', 'Switch:SW_SPDT', 'PATS:SW_SPDT_MK-12C02-G015', 'Power',
     {'1': 'VSYS', '2': 'PWR_ON', '3': None}, side='B', block='power', pin_targets=REV1['POWER_SWITCH'],
     mpn='G-Switch MK-12C02-G015', lcsc='C2911519', extra_pads={'SH': 'GND'},
     note='rev-1 part and position (enclosure slot at x 66.8)')
-res0402('R29', '100k', 'PWR_ON', 'GND', (68.6, 6.1), 0, block='power')
+res0402('R29', '100k', 'PWR_ON', 'GND', (73.4, 68.2), 0, block='power')
 add('U16', 'Power_Management:TPS22917DBV', 'Package_TO_SOT_SMD:SOT-23-6', 'TPS22917',
     {'1': 'VSYS', '6': 'VSW', '3': 'PWR_ON', '4': 'CT', '5': None, '2': 'GND'},
-    (46.6, 26.2), 0, 'B', block='power', mpn='TPS22917DBVR', lcsc='C2681320', note='2 A load switch')
-cap0402('C54', '1n', 'CT', 'GND', (46.4, 29.0), 0, block='power', note='soft start')
-cap('C55', '10u', 'VSYS', 'GND', (44.4, 29.55), 90, block='power')
-cap('C56', '10u', 'VSW', 'GND', (48.5, 29.55), 90, block='power')
+    (73.4, 61.0), 90, 'B', block='power', mpn='TPS22917DBVR', lcsc='C2681320', note='2 A load switch')
+cap0402('C54', '1n', 'CT', 'GND', (75.4, 65.5), 90, block='power', note='soft start')
+cap('C55', '10u', 'VSYS', 'GND', (71.6, 65.5), 90, block='power')
+cap('C56', '10u', 'VSW', 'GND', (73.6, 65.5), 90, block='power')
 
 # 3.3 V: LDO from VSW (RP2040, flash, 74HC165s, OLED, MIDI opto; < 100 mA).
 add('U17', 'Regulator_Linear:AP2112K-3.3', 'Package_TO_SOT_SMD:SOT-23-5', 'AP2112K-3.3',
@@ -377,7 +381,7 @@ cap0402('C71', '100n', '+3V3', 'GND', (17.8, 18.0), 90, block='midi')
 add('J5', 'Connector_Audio:AudioJack3', 'PATS:Jack_3.5mm_PJ-320-3P-SMT', 'MIDI OUT',
     {'S': 'GND', 'R': 'MIDI_OUT_R', 'T': 'MIDI_OUT_T'}, side='B', block='midi',
     pin_targets=REV1['MIDI_OUT_JACK'], mpn='PJ-320-3P SMT', lcsc='C17701688', note='rev-1 part and position')
-res0402('R42', '33', '+3V3', 'MIDI_OUT_R', (46.0, 3.2), 0, block='midi')
+res0402('R42', '33', '+3V3', 'MIDI_OUT_R', (46.6, 2.0), 0, block='midi')
 res0402('R43', '10', 'MIDI_TX', 'MIDI_OUT_T', (54.6, 12.6), 0, block='midi')
 add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'MIDI_OUT_R', '6': 'MIDI_OUT_R', '3': 'MIDI_OUT_T', '4': 'MIDI_OUT_T', '2': 'GND', '5': '+3V3'},
@@ -421,11 +425,10 @@ NETCLASSES = {
     'Plane': (0.6, ['VLED']),  # on inner layer 2: fanned out to vias, not routed  # into fine-pitch pins; 0.2 mm carries far more than they need
     'Ground': (0.3, ['GND']),
 }
-# Freerouting does not honour the class split on this board (the power stage got every net), so power and
-# the rest route together after the escapes; tools/finish.py joins what is left.
+# One stage: Freerouting does not honour a class split on this board (each stage routed every net), so
+# staging only cost time. Ground and VLED (planes) are not routed.
 ROUTE_STAGES = [
-    ('escape', ['Fine', 'Medium', 'Usb', 'Supply']),
-    ('rest', ['Power', 'Default']),
+    ('all', ['Fine', 'Medium', 'Usb', 'Supply', 'Power', 'Default']),
 ]
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
