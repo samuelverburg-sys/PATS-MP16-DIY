@@ -44,7 +44,7 @@ frame; the enclosure STLs use the same x and y_stl = 104.775 - y).
   LDO and LED level shifter on the right, fuel gauge and battery protection beside the battery plug.
   0402 passives here; 0603 elsewhere.
 - **Buttons and debug**: BOOT (SW18) and RESET (SW19) side by side in the lower left of the open bottom
-  shell's window, named on the bottom silkscreen; above them three SWD pads, TP1 SWCLK, TP2 SWDIO,
+  shell's window, named on the bottom silkscreen; above them three SWD pads, TP2 SWDIO, TP1 SWCLK,
   TP3 GND (left to right seen from above, right to left seen from below). Flashing a blank or stuck
   board: hold BOOT, press RESET, release BOOT; the RPI-RP2 drive appears.
 - **Key area**: hot-swap sockets, LEDs and their capacitors as the PATS UI board; U1 (pads 1-8) between key

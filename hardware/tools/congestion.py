@@ -14,8 +14,8 @@ import numpy as np
 import pcbnew
 
 ORIGIN = (40.0, 30.0)  # tools/pcb.py: design frame (0, 0) on the KiCad sheet
-CELL = 0.5             # mm
-WIN = 4                # cells per window side (2 mm)
+CELL = 0.25             # mm
+WIN = 8                # cells per window side (2 mm)
 PITCH = 0.28           # mm per track: 0.15 track + 0.13 clearance (JLCPCB 2-layer, the fine class)
 SKIP = {'GND'}
 

@@ -202,6 +202,49 @@ def facing():
                 if a[1] == b[1] and a[4] != b[4] and (a[2] - b[2]) * (a[3] - b[3]) < 0:
                     order.append(f'{fp.GetReference()}: {a[4]} (pin {a[0]}) and {b[4]} (pin {b[0]}) are in the '
                                  f'opposite order to their pins; swap them')
+    # Crossing to connectors: two neighbouring pins on one side of a chip whose nets end on a connector,
+    # test pad or encoder in the opposite order along that side must cross (MP-16: AIN1-4 to the
+    # expansion header, ENC_A/B to the encoder, SWCLK/SWDIO to their test pads each left a net open).
+    ends = {}
+    for f in board.GetFootprints():
+        if f.GetReference().startswith(('J', 'TP', 'ENC')):
+            for p in f.Pads():
+                if p.GetNetname() and p.GetNetname() != 'GND' and not p.GetNetname().startswith('+'):
+                    # a pad's position along the part's long axis, on the line through its centre: tracks
+                    # enter a two-row header between its rows, so which row a pin is in does not order them
+                    bb, pos = f.GetBoundingBox(False, False), p.GetPosition()
+                    at = (pos.x, pos.y) if not f.GetReference().startswith('J') else \
+                        (pos.x, bb.Centre().y) if bb.GetWidth() >= bb.GetHeight() else (bb.Centre().x, pos.y)
+                    ends.setdefault(p.GetNetname(), []).append((p, f.GetReference(), at))
+    for fp in board.GetFootprints():
+        if fp.GetReference()[0] != 'U':
+            continue
+        c = fp.GetPosition()
+        served = []
+        for q in fp.Pads():
+            e = ends.get(q.GetNetname(), [])
+            if len(e) != 1 or math.hypot(e[0][0].GetPosition().x - q.GetPosition().x,
+                                         e[0][0].GetPosition().y - q.GetPosition().y) > pcbnew.FromMM(30):
+                continue
+            dx, dy = q.GetPosition().x - c.x, q.GetPosition().y - c.y
+            side = ('x', 1 if dx > 0 else -1) if abs(dx) > abs(dy) else ('y', 1 if dy > 0 else -1)
+            # how far along the side, and where the far end lies across the side's direction of travel
+            along = (lambda v: v.y) if side[0] == 'x' else (lambda v: v.x)
+            served.append((q.GetNumber(), q.GetNetname(), side, along(q.GetPosition()), e[0]))
+        def cross(p1, p2, p3, p4):  # do segments p1-p2 and p3-p4 cross (proper intersection)
+            d = lambda o, a, b: (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+            return d(p3, p4, p1) * d(p3, p4, p2) < 0 and d(p1, p2, p3) * d(p1, p2, p4) < 0
+        xy = lambda p: (p.GetPosition().x, p.GetPosition().y)
+        for i, a in enumerate(served):
+            for b in served[i + 1:]:
+                if a[2] != b[2] or abs(a[3] - b[3]) > pcbnew.FromMM(1.3):
+                    continue  # neighbouring pins on one side only
+                pa = next(q for q in fp.Pads() if q.GetNumber() == a[0])
+                pb = next(q for q in fp.Pads() if q.GetNumber() == b[0])
+                if cross(xy(pa), a[4][2], xy(pb), b[4][2]):
+                    order.append(f'{fp.GetReference()}: pins {a[0]} ({a[1]}) and {b[0]} ({b[1]}) reach '
+                                 f'{a[4][1]}/{b[4][1]} '
+                                 f'crossed; swap the pins or the ends')
     # Side: a part whose only chip pin on that net is on the chip's far side from it has to route around the
     # chip (MP-16 run 9: R21 left of U13, ILIM on its right; left open, and neither check above saw it).
     side_warn = []
@@ -268,10 +311,29 @@ def courtyards():
                 ca, cb = a.GetCourtyard(layer), b.GetCourtyard(layer)
                 if ca.OutlineCount() and cb.OutlineCount() and ca.Collide(cb):
                     clashes.append((a.GetReference(), b.GetReference(), board.GetLayerName(layer)))
+            # A through-hole part occupies both sides: its pins are soldered on the far side, by hand on the
+            # MP-16 (headers), so parts there need room (MP-16 run 11: J6's pins 0.3 mm from R2, C19, C20,
+            # R3 on the bottom passed the same-side check). Key switches carry their own sockets and LEDs.
+            if not (ra.startswith('SW') and rb.startswith('SW')):
+                for th, other in ((a, b), (b, a)):
+                    if not th.HasThroughHolePads() or th.GetReference().startswith(('SW', 'H')) or \
+                            other.GetLayer() == th.GetLayer():
+                        continue
+                    ct = th.GetCourtyard(pcbnew.F_CrtYd if th.GetLayer() == pcbnew.F_Cu else pcbnew.B_CrtYd)
+                    co = other.GetCourtyard(pcbnew.B_CrtYd if th.GetLayer() == pcbnew.F_Cu else pcbnew.F_CrtYd)
+                    pair = tuple(sorted((th.GetReference(), other.GetReference())))
+                    if ct.OutlineCount() and co.OutlineCount() and ct.Collide(co) and pair not in THROUGH_OK() and \
+                            (pair[0], pair[1], 'through-hole over the other side') not in clashes:
+                        clashes.append((pair[0], pair[1], 'through-hole over the other side'))
     for c in clashes:
         print('courtyard overlap:', *c)
     print(f'placement: {len(clashes)} courtyard overlaps')
     return True
+
+
+def THROUGH_OK():
+    """(through-hole part, part on the other side) pairs that may overlap: design.THROUGH_HOLE_OVERLAP_OK."""
+    return {tuple(sorted(p)) for p in getattr(design, 'THROUGH_HOLE_OVERLAP_OK', [])}
 
 
 JAVA = os.environ.get('JAVA', 'java')

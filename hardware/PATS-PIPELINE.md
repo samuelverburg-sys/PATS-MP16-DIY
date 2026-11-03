@@ -40,3 +40,6 @@ When the PATS pipeline improves, bring changes over file by file and note them b
 | `tools/finish.py` | `join_ground` time budget (`GROUND_SECONDS`, 300) with the positions of areas left cut off | it ran 865 s on one MP-16 run |
 | `build.py` | DSN boundary inset = edge clearance + 20 um (the DSN is in um; the old `+ 0.08` was 0.08 um) | tracks ended 0.235 mm from the edge (rule 0.3) |
 | `build.py` | ground fan-out on several sides (`GND_FANOUT_SIDE = 'BF'`) | the MP-16's RP2040 capacitors are on the top, the rest on the bottom |
+| `build.py` | placement check: through-hole parts against the other side's parts (`design.THROUGH_HOLE_OVERLAP_OK`) | a header moved 0.3 mm from bottom parts passed the per-side check |
+| `build.py` | facing check: two neighbouring chip pins whose straight connections to a connector, test pad or encoder cross (connector pads taken along its long axis) | AIN, ENC and SWD nets each failed on such a crossing |
+| `tools/congestion.py`, `build.py preflight` | routing demand against room per 2 mm window, 0.25 mm cells, averaged over shifted grids; preflight step; route needs `ROUTE_NOTE` | to prepare runs; a 0.5 mm grid aliased with 2.54 mm headers |

@@ -39,8 +39,8 @@ The board layer picks the pins (and the UART) per revision from `board_pins.h`.
 | GP19 | EXP_MOSI | expansion 74HC595 SER | new |
 | GP20 | EXP_LATCH | expansion 74HC595 RCLK | new |
 | GP21 | MIDI_RX | UART1 RX <- MIDI In opto | GP1, UART0 |
-| GP22 | ENC_A | encoder A | GP7 |
-| GP23 | ENC_B | encoder B | GP8 |
+| GP22 | ENC_B | encoder B | GP8 |
+| GP23 | ENC_A | encoder A (the upper pin of the two: the tracks to the encoder do not cross) | GP7 |
 | GP26-29 | AIN1-4 | ADC0-3 -> expansion header | GP26 was matrix row 3 |
 | GP0, 1, 4-7, 9-11, 14, 15, 24, 25 | spare | not connected | |
 

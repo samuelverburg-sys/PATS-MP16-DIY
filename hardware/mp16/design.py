@@ -159,8 +159,8 @@ res0402('R5', '4.7k', 'I2C_SCL', '+3V3', (46.6, 21.6), 270, block='connectors')
 GPIO = {
     0: None, 1: None, 2: 'LED_DATA', 3: 'PGOOD_N', 4: None, 5: None, 6: None, 7: None,
     8: 'MIDI_TX', 9: None, 10: None, 11: None, 12: 'I2C_SDA', 13: 'I2C_SCL', 14: None, 15: None,
-    16: 'SR_DATA', 17: 'SR_LOAD', 18: 'SR_CLK', 19: 'EXP_MOSI', 20: 'EXP_LATCH', 21: 'MIDI_RX', 22: 'ENC_A',
-    23: 'ENC_B', 24: None, 25: None, 26: 'AIN1', 27: 'AIN2', 28: 'AIN3', 29: 'AIN4',
+    16: 'SR_DATA', 17: 'SR_LOAD', 18: 'SR_CLK', 19: 'EXP_MOSI', 20: 'EXP_LATCH', 21: 'MIDI_RX', 22: 'ENC_B',
+    23: 'ENC_A', 24: None, 25: None, 26: 'AIN1', 27: 'AIN2', 28: 'AIN3', 29: 'AIN4',
 }
 RP2040_GPIO_PIN = {g: p for g, p in zip(range(30), [2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18,
                                                      27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41])}
@@ -242,8 +242,9 @@ res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 90, block=
 cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu', side=MCU_SIDE)
 cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu', side=MCU_SIDE)
 
-# SWD test pads (debug probe), next to RESET.
-for k, (net, x) in enumerate([('SWCLK', 25.2), ('SWDIO', 27.4), ('GND', 29.6)]):
+# SWD test pads (debug probe), next to RESET. Left to right SWDIO, SWCLK, GND: the RP2040's SWCLK pin (24) is
+# right of SWDIO (25), so this order keeps their tracks from crossing (SWCLK, SWDIO, GND left SWCLK open).
+for k, (net, x) in enumerate([('SWCLK', 27.4), ('SWDIO', 25.2), ('GND', 29.6)]):
     add(f'TP{k + 1}', 'Connector:TestPoint', 'TestPoint:TestPoint_Pad_D1.0mm', net, {'1': net},
         (x, 22.6), 0, 'B', block='mcu', note='SWD')
 
@@ -407,10 +408,11 @@ add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC
 # Replaces rev 1's 3-pin analog header.
 # ---------------------------------------------------------------------------
 # AIN4..AIN1 left to right: the RP2040's ADC pins run AIN4 (top) to AIN1 down its left side, so their tracks
-# reach the header in this order without crossing (AIN1..4 left to right crossed; AIN4 failed twice).
-EXP_PINS = {1: '+3V3', 2: 'GND', 3: 'AIN4', 4: 'AIN3', 5: 'AIN2', 6: 'AIN1', 7: 'EXP_MOSI', 8: 'SR_CLK',
-            9: 'EXP_LATCH', 10: 'GND', 11: 'I2C_SDA', 12: 'I2C_SCL'}
-J6_PIN1 = (6.4, 28.0)  # odd pins in the lower row, even pins 2.54 mm above; clear of H3 and the row-1 sockets
+# reach the header in this order without crossing (AIN1..4 left to right crossed; AIN4 failed twice). The same
+# for EXP_LATCH (GPIO20, the highest of the three), EXP_MOSI, SR_CLK (build.py facing: crossing to connectors).
+EXP_PINS = {1: '+3V3', 2: 'GND', 3: 'AIN4', 4: 'AIN3', 5: 'AIN2', 6: 'AIN1', 7: 'EXP_LATCH', 8: 'EXP_MOSI',
+            9: 'SR_CLK', 10: 'GND', 11: 'I2C_SDA', 12: 'I2C_SCL'}
+J6_PIN1 = (5.6, 29.24)  # odd pins in the lower row, even pins 2.54 mm above; clear of H3 and the row-1 sockets
 add('J6', 'Connector_Generic:Conn_02x06_Odd_Even', 'Connector_PinHeader_2.54mm:PinHeader_2x06_P2.54mm_Vertical',
     'EXPANSION', {str(k): v for k, v in EXP_PINS.items()}, side='F', block='connectors',
     pin_targets={str(n): (J6_PIN1[0] + 2.54 * ((n - 1) // 2), J6_PIN1[1] - 2.54 * ((n - 1) % 2)) for n in EXP_PINS},
@@ -482,6 +484,10 @@ LABELS = [
     (('PATS MP-16 rev 2', 'MP-16 rev 2'), (38.1, 102.0), 'B', 1.0, 0, 'xy', 6.0),
 ]
 HIDE_REFS = ['SW18', 'SW19', 'TP1', 'TP2', 'TP3']  # named by the labels above
+
+# Through-hole parts over parts on the other side, accepted: the encoder above the In jack is the rev-1
+# arrangement (both fixed positions).
+THROUGH_HOLE_OVERLAP_OK = [('ENC1', 'J4')]
 
 # DRC findings accepted on purpose:
 # - mounting holes at the MP-16 positions sit inside switch outlines (as on the rev-1 and UI boards);
