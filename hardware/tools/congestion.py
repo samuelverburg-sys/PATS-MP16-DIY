@@ -31,8 +31,20 @@ def _grid(board):
 
 
 def analyse(path, skip=SKIP):
+    """The score averaged over four window grids shifted by half a window: a single grid's score jumped
+    from 68 to 50 when a pin header moved 1.2 mm across a window border (aliasing, not routability)."""
     board = pcbnew.LoadBoard(path)
+    runs = [_analyse(board, skip, off) for off in ((0, 0), (0.5, 0), (0, 0.5), (0.5, 0.5))]
+    best = runs[0]
+    return {'score': round(sum(r['score'] for r in runs) / len(runs), 1),
+            'windows_over': best['windows_over'], 'spots': best['spots']}
+
+
+def _analyse(board, skip, off):
     x0, y0, nx, ny = _grid(board)
+    x0 -= off[0] * WIN * CELL
+    y0 -= off[1] * WIN * CELL
+    nx, ny = nx + WIN, ny + WIN
     blocked = {pcbnew.F_Cu: np.zeros((ny, nx), bool), pcbnew.B_Cu: np.zeros((ny, nx), bool)}
 
     def mark(layer, cx, cy, hw, hh):
