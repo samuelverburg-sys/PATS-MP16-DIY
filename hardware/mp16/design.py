@@ -176,7 +176,7 @@ rp.update({
     '51': 'QSPI_SD3', '52': 'QSPI_SCLK', '53': 'QSPI_SD0', '54': 'QSPI_SD2', '55': 'QSPI_SD1', '56': 'QSPI_SS',
     '57': 'GND',
 })
-RP = (34.6, 15.6)
+RP = (33.6, 15.6)  # x 33.6: the USB lane in the top capacitor row clears USB-C's shell leg (x 33.3-34.3)
 
 
 def rp_pin(n):
@@ -204,10 +204,10 @@ cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, bl
 cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10')
 cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, block='mcu', note='IOVDD pin 33')
 cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD')
-cap0402('C37', '1u', 'VDD_CORE', 'GND', (31.4, TOP_Y), 90, block='mcu', note='VREG_VOUT')
-cap0402('C36', '1u', '+3V3', 'GND', (32.6, TOP_Y), 90, block='mcu', note='VREG_IN')
-cap0402('C35', '100n', '+3V3', 'GND', (34.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
-cap0402('C39', '100n', 'VDD_CORE', 'GND', (30.2, TOP_Y), 90, block='mcu', note='DVDD pin 50')
+cap0402('C37', '1u', 'VDD_CORE', 'GND', (30.4, TOP_Y), 90, block='mcu', note='VREG_VOUT')
+cap0402('C36', '1u', '+3V3', 'GND', (31.6, TOP_Y), 90, block='mcu', note='VREG_IN')
+cap0402('C35', '100n', '+3V3', 'GND', (33.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
+cap0402('C39', '100n', 'VDD_CORE', 'GND', (29.2, TOP_Y), 90, block='mcu', note='DVDD pin 50')
 cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22')
 cap0402('C38', '100n', 'VDD_CORE', 'GND', (rp_pin(23)[0] - 1.2, rp_pin(23)[1] + 2.2), 90, block='mcu', note='DVDD pin 23')
 
@@ -226,7 +226,7 @@ add('SW18', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'BOOT
     note='reachable through the window of the open bottom shell')
 add('SW19', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'RESET', {'1': 'RUN', '2': 'GND'},
     (23.4, 26.5), 90, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443')
-res0402('R11', '10k', 'RUN', '+3V3', (31.8, rp_pin(26)[1] + 2.2), 90, block='mcu')
+res0402('R11', '10k', 'RUN', '+3V3', (31.4, 24.4), 0, block='mcu')
 
 # 12 MHz crystal, as the Raspberry Pi design: 1 k series on XOUT, 15 pF loads (ABM8-272-T3, CL 10 pF).
 # Under the RP2040's right half, below XIN/XOUT (pins 20, 21).
@@ -238,7 +238,7 @@ cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu')
 cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu')
 
 # SWD test pads (debug probe), next to RESET.
-for k, (net, x) in enumerate([('SWCLK', 25.8), ('SWDIO', 28.0), ('GND', 30.2)]):
+for k, (net, x) in enumerate([('SWCLK', 25.2), ('SWDIO', 27.4), ('GND', 29.6)]):
     add(f'TP{k + 1}', 'Connector:TestPoint', 'TestPoint:TestPoint_Pad_D1.0mm', net, {'1': net},
         (x, 22.6), 0, 'B', block='mcu', note='SWD')
 
@@ -277,11 +277,11 @@ add('U13', 'Battery_Management:BQ24074RGT', 'Package_DFN_QFN:VQFN-16-1EP_3x3mm_P
 cap0402('C50', '1u', 'VBUS', 'GND', (52.6, 61.0), 90, block='power')
 cap('C51', '10u', 'VSYS', 'GND', (59.6, 61.4), 90, block='power')
 cap('C52', '10u', 'VBAT', 'GND', (59.6, 65.6), 90, block='power')
-res0402('R20', '3k', 'ISET', 'GND', (52.6, 63.4), 90, block='power', note='charge current 890/R = 0.30 A')
-res0402('R21', '1k', 'ILIM', 'ILIM_R', (52.6, 65.8), 90, block='power',
+res0402('R20', '3k', 'ISET', 'GND', (55.6, 67.9), 0, block='power', note='charge current 890/R = 0.30 A')
+res0402('R21', '1k', 'ILIM', 'ILIM_R', (52.6, 66.1), 90, block='power',
     note='input current limit: R21 + R22 = 1.18k, 1550/R = 1.3 A')
-res0402('R22', '180', 'ILIM_R', 'GND', (52.6, 68.0), 90, block='power')
-res('R23', '4.12k', 'ITERM', 'GND', (55.6, 67.9), 0, block='power', lcsc='C2960702', note='as TI typical application')
+res0402('R22', '180', 'ILIM_R', 'GND', (52.6, 68.2), 90, block='power')
+res('R23', '4.12k', 'ITERM', 'GND', (52.6, 63.5), 90, block='power', lcsc='C2960702', note='as TI typical application')
 res0402('R24', '10k', 'TS', 'GND', (55.6, 59.4), 0, block='power',
     note='fixed 10k: no temperature sensing (generic packs have no NTC)')
 add('D20', 'Device:LED', 'PATS:LED_SideView_XL-1606_RD', 'charge', {'1': 'LED_CHG', '2': 'VBUS'},
