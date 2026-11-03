@@ -217,7 +217,7 @@ add('U11', 'Memory_Flash:W25Q128JVS', 'Package_SO:SOIC-8_5.23x5.23mm_P1.27mm', '
     {'1': 'QSPI_SS', '2': 'QSPI_SD1', '3': 'QSPI_SD2', '4': 'GND', '5': 'QSPI_SD0', '6': 'QSPI_SCLK',
      '7': 'QSPI_SD3', '8': '+3V3'}, (46.2, 14.6), 0, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
     note='16 MB; Arduino: Generic RP2040, boot2 W25Q080 QSPI /2')
-cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 0, block='mcu')
+cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 180, block='mcu')
 # BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low). The 1 k
 # sits by the button, not above the QSPI pins (it walled their way to the flash in).
 res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (31.4, 26.0), 90, block='mcu')

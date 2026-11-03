@@ -395,7 +395,7 @@ def freerouting(board, ignore, tag, edit=None, margin=None, run=True):
     xs, ys = sorted(set(pts[0::2])), sorted(set(pts[1::2]))
     clear = float(re.search(r'\(clearance ([0-9.]+)\)', text).group(1))
     if len(xs) == 2 and len(ys) == 2 and edge > clear:
-        d = edge - clear
+        d = edge - clear + 0.08  # +0.08: Freerouting kept vias 0.24 mm from the edge with the exact inset
         box = [xs[0] + d, ys[0] + d, xs[1] - d, ys[1] - d]
         path = f'{box[2]:g} {box[1]:g}  {box[0]:g} {box[1]:g}  {box[0]:g} {box[3]:g}  {box[2]:g} {box[3]:g}  {box[2]:g} {box[1]:g}'
         text = text[:m.start(1)] + path + text[m.end(1):]
@@ -559,7 +559,7 @@ def _route(rec):
             # N Freerouting runs at once with different clearance margins (Freerouting uses one core): its
             # result swings from run to run, so the best of N by KiCad's count beats one more pass.
             from concurrent.futures import ThreadPoolExecutor
-            pmargins = (list(margins) if margins != [None] else [0.02, 0.0, 0.04, 0.01])[:par]
+            pmargins = (list(margins) if margins != [None] else [0.02, 0.03, 0.04, 0.05])[:par]  # never 0: Freerouting's rounding then lands under the rule
             jobs = [freerouting(board, ignore, f'{tag}-par{k}', base, margin=m, run=False) for k, m in enumerate(pmargins)]
             jobs = [j for j in jobs if j]
             t_par = time.time()

@@ -180,6 +180,13 @@ def build_blocks(grid, all_shapes, holes, net, width=TRACK_W):
     rv = VIA_D / 2 + grid.cl
     blk = {F: np.zeros(grid.X.shape, bool), B: np.zeros(grid.X.shape, bool)}
     vblk = np.zeros(grid.X.shape, bool)
+    # The board edge for this track width (Grid.edge_ok_t assumes TRACK_W: a 0.6 mm track came to 0.25 mm)
+    e = grid.board.GetBoardEdgesBoundingBox()
+    m = 0.3 + width / 2 + 0.02
+    near_edge = ~((grid.X >= grid.x0 + m) & (grid.X <= grid.x0 + nm(e.GetWidth()) - m) &
+                  (grid.Y >= grid.y0 + m) & (grid.Y <= grid.y0 + nm(e.GetHeight()) - m))
+    blk[F] |= near_edge
+    blk[B] |= near_edge
     for s in all_shapes:
         if s.net == net:
             continue
