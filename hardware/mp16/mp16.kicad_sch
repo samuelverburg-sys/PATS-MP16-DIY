@@ -13575,9 +13575,16 @@
 		)
 		(uuid "4964ad5d-c46a-52f1-9c89-858faf277c05")
 	)
-	(no_connect
-		(at 86.36 195.58)
-		(uuid "9edcd5c9-68a5-575d-b0f6-a5f13200e18e")
+	(label "MIDI_TX"
+		(at 86.36 195.58 0)
+		(fields_autoplaced)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1f471a1f-6b6a-53c3-90a8-4e95b4f62992")
 	)
 	(no_connect
 		(at 86.36 198.12)
@@ -13591,13 +13598,27 @@
 		(at 86.36 203.2)
 		(uuid "94639264-0fe0-5cf4-84db-d13469cf3bbf")
 	)
-	(no_connect
-		(at 86.36 205.74)
-		(uuid "131846e4-e7d6-59d4-9cf9-6d7291957b37")
+	(label "I2C_SDA"
+		(at 86.36 205.74 0)
+		(fields_autoplaced)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e516497f-b0ab-5e8f-99df-4711a7e53d5d")
 	)
-	(no_connect
-		(at 86.36 208.28)
-		(uuid "e11b05e1-87c2-5441-86f8-d5e3f4e60c9e")
+	(label "I2C_SCL"
+		(at 86.36 208.28 0)
+		(fields_autoplaced)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1fbd1dd7-4287-5941-8d87-e707304e5e84")
 	)
 	(no_connect
 		(at 86.36 210.82)
@@ -13618,16 +13639,9 @@
 		)
 		(uuid "e0b51b2f-43b1-5f3a-96b2-c2cbc7acf447")
 	)
-	(label "MIDI_TX"
-		(at 86.36 175.26 0)
-		(fields_autoplaced)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "ddc5c95d-9c1f-53b3-a09c-382efbcbc224")
+	(no_connect
+		(at 86.36 175.26)
+		(uuid "6d4ed073-0b00-54f3-8f0e-286480276fb5")
 	)
 	(label "XIN"
 		(at 35.56 220.98 180)
@@ -13739,16 +13753,9 @@
 		)
 		(uuid "2b15308c-a78d-5b45-b0ce-db3fdad8b65e")
 	)
-	(label "MIDI_RX"
-		(at 86.36 177.8 0)
-		(fields_autoplaced)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "020b63e9-9008-52a9-9c14-abf8a924c6b8")
+	(no_connect
+		(at 86.36 177.8)
+		(uuid "ae732534-8e52-5309-89ec-a0ca91719e28")
 	)
 	(label "EXP_MOSI"
 		(at 86.36 223.52 0)
@@ -13772,9 +13779,16 @@
 		)
 		(uuid "a98ef190-0842-5440-8dff-f7f2974c37ec")
 	)
-	(no_connect
-		(at 86.36 228.6)
-		(uuid "525cab48-68a5-59c4-bb6f-38121d3df0a1")
+	(label "MIDI_RX"
+		(at 86.36 228.6 0)
+		(fields_autoplaced)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b1b4cf20-d79f-5484-a0fe-45be189817f3")
 	)
 	(label "+3V3"
 		(at 63.5 167.64 90)
@@ -13787,7 +13801,7 @@
 		)
 		(uuid "4303bf6b-b66c-5c19-b728-0d5325c8b43e")
 	)
-	(label "PGOOD_N"
+	(label "ENC_A"
 		(at 86.36 231.14 0)
 		(fields_autoplaced)
 		(effects
@@ -13796,11 +13810,18 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "095d9d1c-7079-5c4d-b1e9-d50e1589da0f")
+		(uuid "c23a7da6-b191-5dcc-b9b2-fb4d7ef8b700")
 	)
-	(no_connect
-		(at 86.36 233.68)
-		(uuid "78cc1d93-6744-592d-9865-d8479abc1f92")
+	(label "ENC_B"
+		(at 86.36 233.68 0)
+		(fields_autoplaced)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "627f7272-a493-56a0-9228-87615e21797d")
 	)
 	(no_connect
 		(at 86.36 236.22)
@@ -13953,9 +13974,16 @@
 		)
 		(uuid "2652c0d7-bfa0-5702-8cae-ab7351825a32")
 	)
-	(no_connect
-		(at 86.36 182.88)
-		(uuid "efbd5c36-1e4b-58e5-bdcc-f0d653386afa")
+	(label "PGOOD_N"
+		(at 86.36 182.88 0)
+		(fields_autoplaced)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "eb6b8dfc-e415-558b-ac31-b0666d39ca7f")
 	)
 	(label "VDD_CORE"
 		(at 58.42 167.64 90)
@@ -14045,49 +14073,21 @@
 		)
 		(uuid "b22666ac-bff8-5ce3-8284-fcf518499b54")
 	)
-	(label "I2C_SDA"
-		(at 86.36 185.42 0)
-		(fields_autoplaced)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "8e426c74-4d47-5e67-9cb6-6e847733eafa")
+	(no_connect
+		(at 86.36 185.42)
+		(uuid "08ac81df-d04c-57c0-ad35-d0e6294df07b")
 	)
-	(label "I2C_SCL"
-		(at 86.36 187.96 0)
-		(fields_autoplaced)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "d3c23c28-9658-5032-85e9-4bfae2f56176")
+	(no_connect
+		(at 86.36 187.96)
+		(uuid "7ff2a395-b9b6-5a24-98fb-70346ec68e72")
 	)
-	(label "ENC_A"
-		(at 86.36 190.5 0)
-		(fields_autoplaced)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "86763416-3b54-5fd6-891a-c8e1b780dc36")
+	(no_connect
+		(at 86.36 190.5)
+		(uuid "c71b2bda-6b7c-5c60-b36c-b8677c422861")
 	)
-	(label "ENC_B"
-		(at 86.36 193.04 0)
-		(fields_autoplaced)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "ca38af51-a7cd-54af-ba7a-84f72514dac7")
+	(no_connect
+		(at 86.36 193.04)
+		(uuid "0183e28c-aebc-5b47-9792-0531c6e99a9d")
 	)
 	(symbol
 		(lib_id "Device:C")
