@@ -18,6 +18,8 @@ plate). Everything else may be moved to make the board work, the battery plug in
 charge LED and battery plug sit exactly where rev 1 had them (pin_targets from the rev-1 board), so the
 existing enclosure fits.
 """
+import os
+
 from parts import Design, MP16_HOLES, MP16_OUTLINE, PITCH
 
 NAME = 'mp16'
@@ -40,13 +42,13 @@ R0402 = {'0': 'C17168', '10': 'C25077', '27': 'C25100', '33': 'C25105', '220': '
          '1.5k': 'C25867', '2.2k': 'C25879', '4.7k': 'C25900', '5.1k': 'C25905', '10k': 'C25744', '100k': 'C25741'}
 
 
-def cap0402(ref, value, a, b, at, rot=0, block='', **kw):
-    return add(ref, 'Device:C', 'Capacitor_SMD:C_0402_1005Metric', value, {'1': a, '2': b}, at, rot, 'B',
+def cap0402(ref, value, a, b, at, rot=0, block='', side='B', **kw):
+    return add(ref, 'Device:C', 'Capacitor_SMD:C_0402_1005Metric', value, {'1': a, '2': b}, at, rot, side,
                block=block, lcsc=C0402.get(value, ''), **kw)
 
 
-def res0402(ref, value, a, b, at, rot=0, block='', **kw):
-    return add(ref, 'Device:R', 'Resistor_SMD:R_0402_1005Metric', value, {'1': a, '2': b}, at, rot, 'B',
+def res0402(ref, value, a, b, at, rot=0, block='', side='B', **kw):
+    return add(ref, 'Device:R', 'Resistor_SMD:R_0402_1005Metric', value, {'1': a, '2': b}, at, rot, side,
                block=block, lcsc=R0402.get(value, ''), **kw)
 
 
@@ -199,25 +201,28 @@ add('U10', 'MCU_RaspberryPi:RP2040', 'Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP
 # its pin row, opposite its pin, so the signal pins between them keep a free way out (route 3 walled pins
 # in with capacitors touching the pin rows). Upright (rot 90) on the sides, a top row that leaves a lane for the USB pair
 # (pins 46, 47) and nothing above the QSPI pins (51-56).
+# MCU_SIDE 'F' (trial, 2026-11-03): the RP2040's capacitors, the flash and the crystal on the top side
+# under the OLED, so the bottom around the RP2040 is free for its signals (double-sided assembly).
+MCU_SIDE = os.environ.get('MP16_MCU_SIDE', 'F')
 TOP_Y = 10.15  # the row between USB-C (its body ends at y 9.2) and the RP2040
-cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1')
-cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10')
-cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, block='mcu', note='IOVDD pin 33')
-cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD')
-cap0402('C37', '1u', 'VDD_CORE', 'GND', (30.4, TOP_Y), 90, block='mcu', note='VREG_VOUT')
-cap0402('C36', '1u', '+3V3', 'GND', (31.6, TOP_Y), 90, block='mcu', note='VREG_IN')
-cap0402('C35', '100n', '+3V3', 'GND', (33.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD')
-cap0402('C39', '100n', 'VDD_CORE', 'GND', (29.2, TOP_Y), 90, block='mcu', note='DVDD pin 50')
-cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22')
-cap0402('C38', '100n', 'VDD_CORE', 'GND', (rp_pin(23)[0] - 1.2, rp_pin(23)[1] + 2.2), 90, block='mcu', note='DVDD pin 23')
+cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1', side=MCU_SIDE)
+cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10', side=MCU_SIDE)
+cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, block='mcu', note='IOVDD pin 33', side=MCU_SIDE)
+cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD', side=MCU_SIDE)
+cap0402('C37', '1u', 'VDD_CORE', 'GND', (30.4, TOP_Y), 90, block='mcu', note='VREG_VOUT', side=MCU_SIDE)
+cap0402('C36', '1u', '+3V3', 'GND', (31.6, TOP_Y), 90, block='mcu', note='VREG_IN', side=MCU_SIDE)
+cap0402('C35', '100n', '+3V3', 'GND', (33.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD', side=MCU_SIDE)
+cap0402('C39', '100n', 'VDD_CORE', 'GND', (29.2, TOP_Y), 90, block='mcu', note='DVDD pin 50', side=MCU_SIDE)
+cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22', side=MCU_SIDE)
+cap0402('C38', '100n', 'VDD_CORE', 'GND', (rp_pin(23)[0] - 1.2, rp_pin(23)[1] + 2.2), 90, block='mcu', note='DVDD pin 23', side=MCU_SIDE)
 
 # Flash right of the RP2040's QSPI corner (pins 51-56, top right), pin rows left and right: both rows open
 # onto free board (rows up and down left the far row reachable only through a 1.2 mm channel).
 add('U11', 'Memory_Flash:W25Q128JVS', 'Package_SO:SOIC-8_5.23x5.23mm_P1.27mm', 'W25Q128JV',
     {'1': 'QSPI_SS', '2': 'QSPI_SD1', '3': 'QSPI_SD2', '4': 'GND', '5': 'QSPI_SD0', '6': 'QSPI_SCLK',
-     '7': 'QSPI_SD3', '8': '+3V3'}, (46.2, 14.6), 0, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
+     '7': 'QSPI_SD3', '8': '+3V3'}, (46.2, 14.6), 0, MCU_SIDE, block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
     note='16 MB; Arduino: Generic RP2040, boot2 W25Q080 QSPI /2')
-cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 180, block='mcu')
+cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 180, block='mcu', side=MCU_SIDE)
 # BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low). The 1 k
 # sits by the button, not above the QSPI pins (it walled their way to the flash in).
 res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (31.4, 26.0), 90, block='mcu')
@@ -231,11 +236,11 @@ res0402('R11', '10k', 'RUN', '+3V3', (31.4, 24.4), 0, block='mcu')
 # 12 MHz crystal, as the Raspberry Pi design: 1 k series on XOUT, 15 pF loads (ABM8-272-T3, CL 10 pF).
 # Under the RP2040's right half, below XIN/XOUT (pins 20, 21).
 add('Y1', 'Device:Crystal_GND24', 'Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm', '12MHz',
-    {'1': 'XIN', '2': 'GND', '3': 'XTAL_OUT', '4': 'GND'}, (38.6, 21.6), 0, 'B', block='mcu',
+    {'1': 'XIN', '2': 'GND', '3': 'XTAL_OUT', '4': 'GND'}, (38.6, 21.6), 0, MCU_SIDE, block='mcu',
     mpn='Abracon ABM8-272-T3', lcsc='C20625731', note='12 MHz, CL 10 pF, approved by Abracon for the RP2040')
-res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 90, block='mcu')
-cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu')
-cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu')
+res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 90, block='mcu', side=MCU_SIDE)
+cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu', side=MCU_SIDE)
+cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu', side=MCU_SIDE)
 
 # SWD test pads (debug probe), next to RESET.
 for k, (net, x) in enumerate([('SWCLK', 25.2), ('SWDIO', 27.4), ('GND', 29.6)]):
@@ -422,7 +427,7 @@ POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'SW_LED'}
 # 0.2 mm net (Supply). JLCPCB 4-layer standard stackup; same 0.127 mm / 0.3 mm rules.
 # Samuel (2026-11-03): 2 layers preferred over 4. MP16_LAYERS=4 builds the 4-layer variant (GND and VLED
 # planes), kept for comparison.
-import os as _os  # noqa: E402
+_os = os
 LAYERS = int(_os.environ.get('MP16_LAYERS', '2'))
 PLANES = {'In1.Cu': 'GND', 'In2.Cu': 'VLED'} if LAYERS == 4 else {}
 if LAYERS == 2:
