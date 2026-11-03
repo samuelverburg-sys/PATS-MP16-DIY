@@ -120,7 +120,7 @@ def table(board, last=15, wide=False):
     if not routes:
         print(f'log: no route runs of {board} yet ({os.path.relpath(LOG)})')
         return
-    print(f'{"when (UTC)":17} {"commit":9} {"time":>6} {"prejoin":>8} {"attempts":>9} {"router":>6} '
+    print(f'{"when (UTC)":17} {"commit":9} {"time":>6} {"prejoin":>8} {"attempt nets":>12} {"router":>6} '
           f'{"finish":>6}  drc')
     for r in routes:
         i = all_routes.index(r)
@@ -134,7 +134,7 @@ def table(board, last=15, wide=False):
         d = c.get('drc')
         res = f'{d["errors"]} err, {d["unconnected"]} unc' if d else '-'
         status = ' (stopped)' if r.get('stopped') or ('unrouted' not in r and not r.get('quick')) else ''
-        print(f'{r["time"][:16]:17} {r.get("commit", "?"):9} {r.get("s", 0) / 60:5.1f}m {pjs:>8} {att:>9} '
+        print(f'{r["time"][:16]:17} {r.get("commit", "?"):9} {r.get("s", 0) / 60:5.1f}m {pjs:>8} {att:>12} '
               f'{str(after):>6} {str(fin):>6}  {res}{status}')
         if r.get('note'):
             print(f'    tested: {r["note"]}')
