@@ -42,20 +42,19 @@ constexpr int kMatrixRows[4] = { 13, 14, 15, 26 };  // driven low one at a time
 constexpr int kMidiUart = 1;  // UART1 (Serial2)
 constexpr int kMidiTx = 8;    // UART1 TX -> MIDI Out jack (right)
 constexpr int kMidiRx = 21;   // UART1 RX <- MIDI In opto-coupler (left)
-constexpr int kI2cSda = 12;   // I2C0: OLED (0x3C), MAX17048 fuel gauge (0x36); bottom edge, towards the OLED
+constexpr int kI2cSda = 12;   // I2C0: OLED (0x3C) and the Qwiic connector J6; bottom edge, towards the OLED
 constexpr int kI2cScl = 13;
 constexpr int kEncoderA = 23;  // left, towards the encoder; A on the upper pin of the two, as the encoder's
 constexpr int kEncoderB = 22;  // A is the farther pin (their tracks would cross the other way round)
 constexpr int kShiftRegData = 16;  // 74HC165 Q7 (last chip in the chain)
 constexpr int kShiftRegLoad = 17;  // 74HC165 /PL, all chips
-constexpr int kShiftRegClock = 18; // 74HC165 CP, all chips; also clocks the expansion 74HC595
-constexpr int kExpansionData = 19; // expansion header: 74HC595 SER (analog mux select)
-constexpr int kExpansionLatch = 20;// expansion header: 74HC595 RCLK
+constexpr int kShiftRegClock = 18; // 74HC165 CP, all chips
 constexpr int kPowerGoodN = 3;     // BQ24074 /PGOOD: low while USB power is present
-constexpr int kAnalogIn[4] = { 26, 27, 28, 29 };  // expansion header AIN1-4 (ADC0-3)
-// Charging state comes from the MAX17048 fuel gauge (I2C 0x36), not a pin: the charger's /CHG drives
-// the charge LED from USB power and must not reach the RP2040 (it would feed it while switched off).
-constexpr uint8_t kFuelGaugeAddress = 0x36;
+constexpr int kBatterySense = 29;  // ADC3: VBAT / 2 (1M + 1M divider, 100 nF), as the Pico's VSYS sense
+constexpr int kBatteryDivider = 2;
+// Charging is estimated from /PGOOD and the voltage (core/battery.h): the charger's /CHG drives the charge
+// LED from USB power and must not reach the RP2040 (it would feed it while switched off).
+// GPIO19, 20, 26-28 are free (the 2x6 expansion header became a 4-pin I2C connector, 2026-11-03).
 
 // Bit positions in the 24 bits read from the 74HC165 chain, first bit read = bit 23.
 // Chain (hardware/mp16/design.py): U3 (Shift, encoder push, spares) is nearest the RP2040, then U1

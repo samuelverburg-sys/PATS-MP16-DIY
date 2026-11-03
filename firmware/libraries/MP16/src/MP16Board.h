@@ -13,6 +13,7 @@
 #include <Adafruit_SSD1306.h>
 
 #include "board_pins.h"
+#include "core/battery.h"
 #include "core/input.h"
 
 namespace mp16 {
@@ -47,10 +48,12 @@ class Board {
   int takeEncoderDetents();
   int takeEncoderQuarterSteps();
 
-  // Battery (rev 2 only: the MAX17048 fuel gauge and the charger's /PGOOD; rev 1 has neither).
+  // Battery (rev 2 only: VBAT / 2 on ADC3 and the charger's /PGOOD; rev 1 has neither). Roughly 5 % steps:
+  // a LiPo's voltage maps to its charge only loosely (core/battery.h).
   bool hasBatteryInfo() const { return MP16_BOARD_REV >= 2; }
-  int batteryPercent();       // 0-100, or -1 when unknown (rev 1, no gauge answer)
-  bool isCharging();          // USB present and the battery's charge rate is positive
+  int batteryMillivolts();    // smoothed; -1 on rev 1
+  int batteryPercent();       // 0-100, or -1 when unknown (rev 1)
+  bool isCharging();          // estimate: USB present and the cell below 4.15 V
   bool isUsbPowered() const;  // USB power present (BQ24074 /PGOOD)
 
   static constexpr int revision() { return MP16_BOARD_REV; }
@@ -60,13 +63,13 @@ class Board {
 
  private:
   bool readKeys(bool padsDown[16], bool& shiftDown, bool& encoderDown);
-  bool readGauge(uint8_t reg, uint16_t& value);
 
   Button pads_[16];
   Button shift_;
   Button encoderButton_;
   QuadratureDecoder decoder_;
   volatile int detents_ = 0;
+  BatteryFilter batteryFilter_;
 };
 
 // The board the sketch uses (defined in MP16Board.cpp), for the encoder interrupt.

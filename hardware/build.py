@@ -255,7 +255,8 @@ def facing():
             continue
         for p in pads:
             net = p.GetNetname()
-            if not net or net in ('GND',) or net.startswith('+') or net in getattr(design, 'POWER_NETS', set()):
+            if not net or net in ('GND',) or net.startswith('+') or net in getattr(design, 'POWER_NETS', set()) or \
+                    net in getattr(design, 'PLANES', {}).values():
                 continue
             pins = [(ref, q) for ref, q in chip_pads if q.GetNetname() == net]
             if len(pins) != 1:
@@ -316,7 +317,10 @@ def courtyards():
             # R3 on the bottom passed the same-side check). Key switches carry their own sockets and LEDs.
             if not (ra.startswith('SW') and rb.startswith('SW')):
                 for th, other in ((a, b), (b, a)):
-                    if not th.HasThroughHolePads() or th.GetReference().startswith(('SW', 'H')) or \
+                    # mounting holes count too (MP-16: a connector on H4 passed); holes inside switch
+                    # outlines are skipped above
+                    is_hole = th.GetReference().startswith('H') and th.GetReference()[1:].isdigit()
+                    if not (th.HasThroughHolePads() or is_hole) or th.GetReference().startswith('SW') or \
                             other.GetLayer() == th.GetLayer():
                         continue
                     ct = th.GetCourtyard(pcbnew.F_CrtYd if th.GetLayer() == pcbnew.F_Cu else pcbnew.B_CrtYd)

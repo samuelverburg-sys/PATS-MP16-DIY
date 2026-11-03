@@ -30,6 +30,9 @@ CLEARANCE = 0.13
 MIN_TRACK = 0.127
 LED_OFFSET = (0.0, 5.08)  # MX LED window: south of the switch centre (contacts are north)
 
+# 4 layers (default since run 14): every SMD part on the bottom, one assembly side. 2 layers needed these on top.
+MCU_SIDE = os.environ.get('MP16_MCU_SIDE', 'B' if os.environ.get('MP16_LAYERS', '4') == '4' else 'F')
+
 d = Design(side='B')
 parts = d.parts
 add, res, cap = d.add, d.res, d.cap
@@ -96,12 +99,11 @@ add('ENC1', 'Device:RotaryEncoder_Switch', 'PATS:RotaryEncoder_Bourns_PEC11R-421
     'PEC11R 24 PPR + switch', {'A': 'ENC_A', 'B': 'ENC_B', 'C': 'GND', 'S1': 'KEY_ENC', 'S2': 'GND'},
     (9.525, 14.288), 0, 'F', block='input', mpn='Bourns PEC11R-4215F-S0024', lcsc='C143790',
     extra_pads={'MP': 'GND'}, note='footprint and position from the rev-1 board; hand-soldered')
-# On the top side, between the encoder body and the expansion header (run 13): on the bottom they sat in the
-# gap the AIN tracks need to pass the encoder (AIN2 and AIN4 left open in run 12).
-res0402('R2', '10k', 'ENC_A', '+3V3', (5.0, 24.0), 0, block='input', side='F')
-res0402('R3', '10k', 'ENC_B', '+3V3', (14.0, 24.0), 0, block='input', side='F')
-cap0402('C19', '10n', 'ENC_A', 'GND', (7.4, 24.0), 0, block='input', side='F')
-cap0402('C20', '10n', 'ENC_B', 'GND', (11.6, 24.0), 0, block='input', side='F')
+# 2 layers only: on the top side (run 13), out of the gap the expansion header's AIN tracks needed.
+res0402('R2', '10k', 'ENC_A', '+3V3', (5.0, 24.0), 0, block='input', side=MCU_SIDE)
+res0402('R3', '10k', 'ENC_B', '+3V3', (14.0, 24.0), 180 if MCU_SIDE == 'B' else 0, block='input', side=MCU_SIDE)
+cap0402('C19', '10n', 'ENC_A', 'GND', (7.4, 24.0), 0, block='input', side=MCU_SIDE)
+cap0402('C20', '10n', 'ENC_B', 'GND', (11.6, 24.0), 0, block='input', side=MCU_SIDE)
 
 # ---------------------------------------------------------------------------
 # Switch inputs: 3x 74HC165 (TSSOP-16), each next to the keys it reads.
@@ -161,8 +163,8 @@ res0402('R5', '4.7k', 'I2C_SCL', '+3V3', (46.6, 21.6), 270, block='connectors')
 GPIO = {
     0: None, 1: None, 2: 'LED_DATA', 3: 'PGOOD_N', 4: None, 5: None, 6: None, 7: None,
     8: 'MIDI_TX', 9: None, 10: None, 11: None, 12: 'I2C_SDA', 13: 'I2C_SCL', 14: None, 15: None,
-    16: 'SR_DATA', 17: 'SR_LOAD', 18: 'SR_CLK', 19: 'EXP_MOSI', 20: 'EXP_LATCH', 21: 'MIDI_RX', 22: 'ENC_B',
-    23: 'ENC_A', 24: None, 25: None, 26: 'AIN1', 27: 'AIN2', 28: 'AIN3', 29: 'AIN4',
+    16: 'SR_DATA', 17: 'SR_LOAD', 18: 'SR_CLK', 19: None, 20: None, 21: 'MIDI_RX', 22: 'ENC_B',
+    23: 'ENC_A', 24: None, 25: None, 26: None, 27: None, 28: None, 29: 'BAT_SENSE',
 }
 RP2040_GPIO_PIN = {g: p for g, p in zip(range(30), [2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18,
                                                      27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41])}
@@ -205,7 +207,6 @@ add('U10', 'MCU_RaspberryPi:RP2040', 'Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP
 # (pins 46, 47) and nothing above the QSPI pins (51-56).
 # MCU_SIDE 'F' (trial, 2026-11-03): the RP2040's capacitors, the flash and the crystal on the top side
 # under the OLED, so the bottom around the RP2040 is free for its signals (double-sided assembly).
-MCU_SIDE = os.environ.get('MP16_MCU_SIDE', 'F')
 TOP_Y = 10.15  # the row between USB-C (its body ends at y 9.2) and the RP2040
 cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1', side=MCU_SIDE)
 cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10', side=MCU_SIDE)
@@ -310,6 +311,7 @@ res0402('R25', '1.5k', 'LED_CHG', 'CHG_N', (64.8, 6.1), 0, block='power')
 # The power section sits in the key area (2026-11-03): in the top band it shared 30 mm with the RP2040 and
 # the router left the RP2040's flash, LED and MIDI lines open. Charger between keys 7 and 8, load switch at
 # the right edge beside key 8, battery plug and protection between keys 11 and 12, gauge beside key 12.
+BAT_DIV_AT = [(72.6, 80.0), (73.8, 80.0), (26.6, 13.4)]  # R44, R45 where the gauge was; C53 by GPIO29 (pin 41)
 BATTERY_PINS = {'1': (59.2, 82.0), '2': (59.2, 80.0)}  # rev-1 orientation: body to the left of the pins
 add('J7', 'Connector_Generic:Conn_01x02', 'PATS:JST_PH_S2B-PH-K-S_Horizontal',
     'LiPo 1S (pin 1 = GND, pin 2 = +)', {'1': 'GND', '2': 'BATT_P'}, side='B', block='power',
@@ -324,17 +326,13 @@ add('Q2', 'Transistor_BJT:MMBT3906', 'Package_TO_SOT_SMD:SOT-23', 'MMBT3906', {'
     note='pulls Q1 gate to VBAT (off) while the battery pin is below VBAT')
 res0402('R27', '100k', 'Q2_B', 'BATT_P', (72.6, 87.2), 0, block='power')
 
-# Fuel gauge on VBAT (after the protection, before the switch): keeps tracking while switched off.
-add('U15', 'PATS:MAX17048', 'Package_DFN_QFN:TDFN-8-1EP_2x2mm_P0.5mm_EP0.8x1.2mm', 'MAX17048',
-    {'1': 'GND', '2': 'VBAT_GAUGE', '3': 'VBAT_GAUGE', '4': 'GND', '5': 'GAUGE_ALRT', '6': 'GND', '7': 'I2C_SCL',
-     '8': 'I2C_SDA', '9': 'GND'},
-    (73.4, 80.0), 0, 'B', block='power', mpn='MAX17048G+T10', lcsc='C2682616',
-    note='I2C 0x36: battery %, charge rate (charging = positive rate)')
-cap0402('C53', '100n', 'VBAT_GAUGE', 'GND', (73.4, 82.6), 0, block='power')
-res0402('R28', '0', 'VBAT', 'VBAT_GAUGE', (73.4, 84.0), 0, block='power',
-    note='gauge supply/sense link; remove to isolate the gauge')
-add('TP4', 'Connector:TestPoint', 'TestPoint:TestPoint_Pad_D1.0mm', 'GAUGE_ALRT', {'1': 'GAUGE_ALRT'},
-    (75.3, 87.0), 0, 'B', block='power')
+# Battery voltage (Samuel 2026-11-03: a divider instead of the MAX17048 gauge): VBAT / 2 into ADC3 (GPIO29, as
+# the Pico's VSYS sense). 1M + 1M draw 2 uA from the pack, also when switched off (years for a 300 mAh pack);
+# the 100 nF at the ADC pin gives the sample-and-hold its charge. Percent from the voltage in firmware
+# (core/battery.h); charging = USB present (/PGOOD) and not full.
+res0402('R44', '1M', 'VBAT', 'BAT_SENSE', BAT_DIV_AT[0], 90, block='power', note='battery divider, top')
+res0402('R45', '1M', 'BAT_SENSE', 'GND', BAT_DIV_AT[1], 90, block='power', note='battery divider, bottom')
+cap0402('C53', '100n', 'BAT_SENSE', 'GND', BAT_DIV_AT[2], 90, block='power', note='at the ADC pin')
 
 # On/off: slide switch at the rev-1 position -> TPS22917 load switch -> VSW. Charging works with the
 # switch off; everything after the load switch (RP2040, LEDs, OLED) is off with it.
@@ -409,16 +407,14 @@ add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC
 # the 74HC595 lines for an analog-mux board (data, clock = the 74HC165 clock, latch), I2C and power.
 # Replaces rev 1's 3-pin analog header.
 # ---------------------------------------------------------------------------
-# AIN4..AIN1 left to right: the RP2040's ADC pins run AIN4 (top) to AIN1 down its left side, so their tracks
-# reach the header in this order without crossing (AIN1..4 left to right crossed; AIN4 failed twice). The same
-# for EXP_LATCH (GPIO20, the highest of the three), EXP_MOSI, SR_CLK (build.py facing: crossing to connectors).
-EXP_PINS = {1: '+3V3', 2: 'GND', 3: 'AIN4', 4: 'AIN3', 5: 'AIN2', 6: 'AIN1', 7: 'EXP_LATCH', 8: 'EXP_MOSI',
-            9: 'SR_CLK', 10: 'GND', 11: 'I2C_SDA', 12: 'I2C_SCL'}
-J6_PIN1 = (5.6, 29.24)  # odd pins in the lower row, even pins 2.54 mm above; clear of H3 and the row-1 sockets
-add('J6', 'Connector_Generic:Conn_02x06_Odd_Even', 'Connector_PinHeader_2.54mm:PinHeader_2x06_P2.54mm_Vertical',
-    'EXPANSION', {str(k): v for k, v in EXP_PINS.items()}, side='F', block='connectors',
-    pin_targets={str(n): (J6_PIN1[0] + 2.54 * ((n - 1) // 2), J6_PIN1[1] - 2.54 * ((n - 1) % 2)) for n in EXP_PINS},
-    mpn='2x6 2.54 mm pin header (optional, hand-soldered)')
+# I2C expansion (Samuel 2026-11-03, instead of the 2x6 header): a 4-pin JST SH, Qwiic / STEMMA QT pinout
+# (GND, 3V3, SDA, SCL), SMD on the bottom (assembled), at the bottom edge between keys 14 and 15, mouth
+# towards that edge (the band under the OLED has a mounting hole at each end, H3 and H4, in a plug's way). Add-ons (ADC, multiplexer,
+# sensors) sit on the I2C bus with the OLED. The 2x6 header's analog lines failed in 4 of 9 routes.
+QWIIC_AT, QWIIC_ROT = (36.7, 99.6), 0
+add('J6', 'Connector_Generic:Conn_01x04', 'Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal',
+    'I2C (Qwiic)', {'1': 'GND', '2': '+3V3', '3': 'I2C_SDA', '4': 'I2C_SCL'}, QWIIC_AT, QWIIC_ROT, 'B',
+    block='connectors', extra_pads={'MP': 'GND'}, mpn='JST SM04B-SRSS-TB(LF)(SN)', lcsc='C160404')
 
 # ---------------------------------------------------------------------------
 # Mounting holes: the six of the MP-16 board.
@@ -437,7 +433,7 @@ POWER_NETS = {'VBUS_IN', 'VBUS', 'VSYS', 'VBAT', 'BATT_P', 'VSW', 'SW_LED'}
 # Samuel (2026-11-03): 2 layers preferred over 4. MP16_LAYERS=4 builds the 4-layer variant (GND and VLED
 # planes), kept for comparison.
 _os = os
-LAYERS = int(_os.environ.get('MP16_LAYERS', '2'))
+LAYERS = int(_os.environ.get('MP16_LAYERS', '4'))  # Samuel 2026-11-03: 4 layers, one assembly side
 PLANES = {'In1.Cu': 'GND', 'In2.Cu': 'VLED'} if LAYERS == 4 else {}
 if LAYERS == 2:
     POWER_NETS.add('VLED')  # routed, 0.6 mm
@@ -473,7 +469,7 @@ ROUTE_LOG_VARS = {'mcu_side': MCU_SIDE}  # experiment switches recorded with eve
 PREROUTE_MM = 3.0  # pieces of a net <= 3 mm apart: routed and locked before Freerouting (tools/finish.py prejoin_short)
 GND_FANOUT_SIDE = 'BF' if MCU_SIDE == 'F' else 'B'  # top too: the RP2040's capacitors (a top pour island left C33 open)
 GND_STITCH = 4.0
-DECOUPLED = {'VDD_CORE', 'VBAT_GAUGE'}
+DECOUPLED = {'VDD_CORE'}
 # No escape stubs: with them, quick mode left more open than without (2026-11-03).
 SILK = []
 # Silkscreen labels (tools/silk.py): (text or alternatives, near (x, y), sides, height mm, rotation, may move

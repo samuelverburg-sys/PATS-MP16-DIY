@@ -16,7 +16,7 @@ import design  # noqa: E402
 GPIO_CONSTANTS = {
     'kMidiTx': 'MIDI_TX', 'kMidiRx': 'MIDI_RX', 'kLedData': 'LED_DATA', 'kI2cSda': 'I2C_SDA', 'kI2cScl': 'I2C_SCL',
     'kEncoderA': 'ENC_A', 'kEncoderB': 'ENC_B', 'kShiftRegData': 'SR_DATA', 'kShiftRegLoad': 'SR_LOAD',
-    'kShiftRegClock': 'SR_CLK', 'kExpansionData': 'EXP_MOSI', 'kExpansionLatch': 'EXP_LATCH',
+    'kShiftRegClock': 'SR_CLK', 'kBatterySense': 'BAT_SENSE',
     'kPowerGoodN': 'PGOOD_N',
 }
 
@@ -57,10 +57,6 @@ def main():
         got = ints(text, const)
         if got != gpio_of.get(net):
             errors.append(f'{const} = {got}, design.py has {net} on GPIO{gpio_of.get(net)}')
-    ain = ints(text, 'kAnalogIn')
-    want_ain = [gpio_of.get(f'AIN{k}') for k in range(1, 5)]
-    if ain != want_ain:
-        errors.append(f'kAnalogIn = {ain}, design.py has {want_ain}')
     bits = sr_bits()
     pad_bits = ints(text, 'kSrPadBit')
     want_pads = [bits[f'KEY_P{n}'] for n in range(1, 17)]

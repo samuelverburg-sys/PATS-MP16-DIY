@@ -3,6 +3,7 @@
 #include <cstring>
 #include <vector>
 
+#include "../libraries/MP16/src/core/battery.h"
 #include "../libraries/MP16/src/core/chord_engine.h"
 #include "../libraries/MP16/src/core/input.h"
 #include "../libraries/MP16/src/core/midi_parser.h"
@@ -202,6 +203,43 @@ static void testButtonEdges() {
   CHECK(b.released());
 }
 
+static void testBattery() {
+  // ADC: 12 bits, 3.3 V full scale, divider 2: full scale = 6.6 V, mid scale = 3.3 V
+  CHECK(batteryMillivoltsFromAdc(4095, 12, 3300, 2) == 6600);
+  CHECK(batteryMillivoltsFromAdc(0, 12, 3300, 2) == 0);
+  CHECK(batteryMillivoltsFromAdc(2482, 12, 3300, 2) == 4000);  // 2482 / 4095 * 6600 = 4000.3
+  CHECK(batteryMillivoltsFromAdc(9999, 12, 3300, 2) == 6600);  // clamped to full scale
+  CHECK(batteryMillivoltsFromAdc(100, 0, 3300, 2) == 0);       // nonsense resolution
+  // Percent: ends, curve points, between points, monotonic
+  CHECK(lipoPercent(4250) == 100);
+  CHECK(lipoPercent(4200) == 100);
+  CHECK(lipoPercent(3300) == 0);
+  CHECK(lipoPercent(2900) == 0);
+  CHECK(lipoPercent(3840) == 50);
+  CHECK(lipoPercent(4020) == 80);
+  CHECK(lipoPercent(3860) == 57);  // halfway between 3850 (55) and 3870 (60), rounded down
+  int last = -1;
+  bool monotonic = true;
+  for (int mv = 3000; mv <= 4300; mv += 5) {
+    int p = lipoPercent(mv);
+    if (p < last || p < 0 || p > 100) monotonic = false;
+    last = p;
+  }
+  CHECK(monotonic);
+  // Charging estimate
+  CHECK(likelyCharging(true, 3900));
+  CHECK(!likelyCharging(true, 4180));
+  CHECK(!likelyCharging(false, 3900));
+  CHECK(!likelyCharging(true, 0));
+  // Filter: first sample as is, then 1/8 steps towards new readings
+  BatteryFilter f;
+  CHECK(f.value() == -1);
+  CHECK(f.update(4000) == 4000);
+  CHECK(f.update(3200) == 3900);
+  for (int i = 0; i < 100; ++i) f.update(3200);
+  CHECK(f.value() < 3210 && f.value() >= 3200);
+}
+
 int main() {
   testMusicTheory();
   testPresetsMatchScale();
@@ -213,6 +251,7 @@ int main() {
   testMidiParser();
   testQuadrature();
   testButtonEdges();
+  testBattery();
   std::printf("%d checks, %d failed\n", checks, failures);
   return failures ? 1 : 0;
 }

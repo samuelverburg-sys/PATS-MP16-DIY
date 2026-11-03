@@ -8,7 +8,7 @@ it; never edit them by hand (the next build overwrites them).
 |---|---|
 | Outline | 76.2 x 104.775 mm, six 2.5 mm holes: the rev-1 board, so the enclosure (`../enclosure/stl/`) fits |
 | Layers | 2, JLCPCB standard rules (0.127 mm tracks, 0.13 mm clearance) |
-| Assembly | every SMD part on the bottom (one JLCPCB assembly side, as rev 1); hand-soldered on top: encoder, OLED header, optional expansion header |
+| Assembly | every SMD part on the bottom (one JLCPCB assembly side, as rev 1); 4 layers (In1 GND, In2 VLED; Samuel 2026-11-03: cheaper overall than 2 layers with double-sided assembly); hand-soldered on top: encoder, OLED header |
 | Spec and decisions | `../docs/SPEC.md`, `../docs/decisions/` |
 
 ## Build
@@ -41,7 +41,7 @@ frame; the enclosure STLs use the same x and y_stl = 104.775 - y).
   Checked against the STL openings with `tools/stl_openings.py`.
 - **Top band (y 0-31)**: RP2040 and its flash and crystal in the middle (inside the window of the "Bottom
   (Open)" shell, with BOOT, RESET and the SWD pads), MIDI In circuit under its jack, charger, load switch,
-  LDO and LED level shifter on the right, fuel gauge and battery protection beside the battery plug.
+  LDO and LED level shifter on the right, battery voltage divider and protection beside the battery plug.
   0402 passives here; 0603 elsewhere.
 - **Buttons and debug**: BOOT (SW18) and RESET (SW19) side by side in the lower left of the open bottom
   shell's window, named on the bottom silkscreen; above them three SWD pads, TP2 SWDIO, TP1 SWCLK,
@@ -56,16 +56,16 @@ frame; the enclosure STLs use the same x and y_stl = 104.775 - y).
 The board is made and assembled at JLCPCB (Samuel, 2026-10-22). Check the numbers below against their
 current capabilities page before each order; the build enforces the ones in **bold**.
 
-| Constraint | JLCPCB (2-layer, standard) | This board |
+| Constraint | JLCPCB (4-layer, standard) | This board |
 |---|---|---|
 | Track width / spacing | 0.127 / 0.127 mm minimum | **0.127 mm min track, 0.13 mm clearance** (router works to 0.15) |
 | Vias | 0.3 mm drill / 0.6 mm pad without extra cost (0.2 mm possible at a fee) | **0.3 / 0.6 mm**, 0.4 / 0.8 mm on power |
 | Copper to board edge | 0.3 mm | **0.3 mm** |
 | Assembly sides | one side is cheapest (two sides = second setup) | **all SMD on the bottom** |
 | Parts over the board edge | needs edge rails (JLCPCB adds them, small fee), as rev 1 | jacks, USB-C, power switch overhang the top edge, as rev 1 |
-| Fine pitch | 0.4 mm QFN fine; ENIG recommended | RP2040 0.4 mm, BQ24074 0.5 mm, MAX17048 0.5 mm |
+| Fine pitch | 0.4 mm QFN fine; ENIG recommended | RP2040 0.4 mm, BQ24074 0.5 mm, JST SH 1.0 mm |
 | Parts library | basic parts free; each extended part type has a setup fee | `mp16/PARTS.md`; prefer basic passives |
-| Through-hole | hand-soldered here (cheaper); JLCPCB THT assembly possible | encoder, OLED header, battery plug, expansion header; USB-C's shell legs are through-hole but it is placed by JLCPCB (in the CPL) |
+| Through-hole | hand-soldered here (cheaper); JLCPCB THT assembly possible | encoder, OLED header, battery plug; USB-C's shell legs are through-hole but it is placed by JLCPCB (in the CPL) |
 | Files | Gerber zip, BOM (Comment, Designator, Footprint, LCSC), CPL (Designator, Mid X/Y, Layer, Rotation) | `mp16/fab/` |
 
 ## Fit checks still open (before ordering)
@@ -73,9 +73,7 @@ current capabilities page before each order; the build enforces the ones in **bo
 1. USB-C height: the RP2040-Zero's socket sat 1 mm lower (on the module's own board); this socket is on
    the main board. The enclosure opening (about 16 x 10 mm) leaves ~0.5 mm above a standard plug. Check
    with the printed Top/Bottom and a real cable.
-2. The optional expansion header is through-hole: fit it from the bottom and trim the pins on top, or
-   they may touch the switch plate.
-3. 3D check of the stack (PCB, plate, OLED, battery between board and bottom shell).
+2. 3D check of the stack (PCB, plate, OLED, battery between board and bottom shell).
 
 ## Pipeline
 

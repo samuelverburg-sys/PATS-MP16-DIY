@@ -14,9 +14,9 @@ and the PATS UI and audio boards (github.com/samuelverburg-sys/PATS, `pats-core/
 | Keys and LEDs | Kailh CPG151101S11 MX hot-swap sockets, SK6812MINI-E reverse-mount (as both boards today) |
 | MCU | **Bare RP2040** on the board (replaces the RP2040-Zero), QSPI flash, 12 MHz crystal, BOOT + RESET buttons, SWD pads |
 | USB | USB-C (data + charging), USBLC6-2SC6 ESD, polyfuse |
-| Power | **Battery kept, improved**: 1S LiPo on JST-PH, BQ24074 charger with power path (runs from USB while charging), **reverse-polarity protection** on the battery, slide switch + TPS22917 load switch, MAX17048 fuel gauge, AP2112K 3.3 V, MT3608 5 V boost for the LEDs. Reused from the PATS audio board |
+| Power | **Battery kept, improved**: 1S LiPo on JST-PH, BQ24074 charger with power path (runs from USB while charging), **reverse-polarity protection** on the battery, slide switch + TPS22917 load switch, battery voltage divider into ADC3 (Samuel 2026-11-03: instead of the MAX17048 gauge), AP2112K 3.3 V, MT3608 5 V boost for the LEDs. Reused from the PATS audio board |
 | MIDI | **3.5 mm TRS Type A**, two jacks as now: In (opto-isolated) and Out. **Thru is a firmware option** (Out echoes In), no third jack, no enclosure change |
-| Analog expansion | **Header only**: the RP2040's 4 ADC inputs, 74HC595 select lines (shared clock with the 74HC165 chain), I2C and power, for a future pot/fader board. Replaces the old 3-pin H1 |
+| Expansion | **4-pin I2C connector** (JST SH 1.0 mm, Qwiic / STEMMA QT: GND, 3V3, SDA, SCL), SMD on the bottom (Samuel 2026-11-03, instead of the 2x6 header with analog inputs and mux lines, whose tracks failed in 4 of 9 routes). Add-ons (ADC, multiplexer, pots) sit on the I2C bus. Replaces the old 3-pin H1 |
 | Tooling | KiCad, generated from Python with a **copy of the PATS hardware pipeline** (`build.py`, `tools/`, `lib/`), PATS commit recorded |
 | Firmware | **Platform-free C++ core with host tests**, wrapped by Arduino (arduino-pico) sketches. One hardware layer, two board configs: the original kit (rev 1, RP2040-Zero, key matrix) and this board (rev 2) |
 | Claude | CLAUDE.md, docs, pinned arduino-cli build, SessionStart hook so cloud sessions can build and test |
@@ -31,17 +31,18 @@ The board layer picks the pins (and the UART) per revision from `board_pins.h`.
 | GP2 | LED_DATA | SK6812 chain, via 74AHCT1G125 | same (no shifter) |
 | GP3 | PGOOD_N | BQ24074 /PGOOD (USB power present) | new |
 | GP8 | MIDI_TX | UART1 TX -> MIDI Out (and soft Thru) | GP0, UART0 |
-| GP12 | I2C_SDA | I2C0: OLED 0x3C, MAX17048 0x36 | GP4 |
+| GP12 | I2C_SDA | I2C0: OLED 0x3C, Qwiic connector J6 | GP4 |
 | GP13 | I2C_SCL | I2C0 | GP5 |
 | GP16 | SR_DATA | 74HC165 Q7 (U3, nearest the RP2040) | rev 1: matrix |
 | GP17 | SR_LOAD | 74HC165 /PL | rev 1: matrix |
-| GP18 | SR_CLK | 74HC165 CP and expansion 74HC595 SRCLK | rev 1: matrix |
-| GP19 | EXP_MOSI | expansion 74HC595 SER | new |
-| GP20 | EXP_LATCH | expansion 74HC595 RCLK | new |
+| GP18 | SR_CLK | 74HC165 CP | rev 1: matrix |
+| GP19 | - | free | |
+| GP20 | - | free | |
 | GP21 | MIDI_RX | UART1 RX <- MIDI In opto | GP1, UART0 |
 | GP22 | ENC_B | encoder B | GP8 |
 | GP23 | ENC_A | encoder A (the upper pin of the two: the tracks to the encoder do not cross) | GP7 |
-| GP26-29 | AIN1-4 | ADC0-3 -> expansion header | GP26 was matrix row 3 |
+| GP26-28 | - | free (ADC0-2) | GP26 was matrix row 3 |
+| GP29 | BAT_SENSE | ADC3: VBAT / 2 (1M + 1M, 100 nF), as the Pico's VSYS sense | new |
 | GP0, 1, 4-7, 9-11, 14, 15, 24, 25 | spare | not connected | |
 
 Why these pins (2026-11-03): the RP2040 sits on the bottom, so seen from above GPIO0-11 face right, 12-17 down
@@ -52,7 +53,7 @@ The encoder push and Shift go through the 74HC165 chain, as on the UI board. Cha
 RP2040 first): U3 (Shift, encoder push, 6 spares; top band), U1 (pads 1-8; between key rows 1 and 2),
 U2 (pads 9-16; between rows 3 and 4). `scripts/check-pins.py` checks `board_pins.h` against `design.py`.
 
-Charging state comes from the MAX17048 fuel gauge, not from the charger's /CHG pin: /CHG drives the
+Charging is estimated from /PGOOD and the battery voltage (`core/battery.h`), not read from the charger's /CHG pin: /CHG drives the
 charge LED from USB power, and a wire from it to a GPIO would feed the switched-off RP2040 through the
 LED.
 

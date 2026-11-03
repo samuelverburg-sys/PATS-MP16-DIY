@@ -27,11 +27,7 @@ bool Board::begin() {
   pinMode(pins::kShiftRegClock, OUTPUT);
   digitalWrite(pins::kShiftRegLoad, HIGH);
   digitalWrite(pins::kShiftRegClock, LOW);
-  // Expansion 74HC595 lines: idle low so nothing is latched by accident.
-  pinMode(pins::kExpansionData, OUTPUT);
-  pinMode(pins::kExpansionLatch, OUTPUT);
-  digitalWrite(pins::kExpansionData, LOW);
-  digitalWrite(pins::kExpansionLatch, LOW);
+  analogReadResolution(12);
   pinMode(pins::kPowerGoodN, INPUT_PULLUP);  // open-drain output of the BQ24074
 #endif
 
@@ -122,37 +118,24 @@ int Board::takeEncoderQuarterSteps() {
   return q;
 }
 
-// MAX17048 registers (datasheet "Register Summary"): 16-bit, MSB first.
-static constexpr uint8_t kGaugeSoc = 0x04;    // state of charge, 1/256 %
-static constexpr uint8_t kGaugeCrate = 0x16;  // charge rate, signed, 0.208 %/hour per bit
-
-bool Board::readGauge(uint8_t reg, uint16_t& value) {
+int Board::batteryMillivolts() {
 #if MP16_BOARD_REV >= 2
-  Wire.beginTransmission(pins::kFuelGaugeAddress);
-  Wire.write(reg);
-  if (Wire.endTransmission(false) != 0) return false;
-  if (Wire.requestFrom(pins::kFuelGaugeAddress, (uint8_t)2) != 2) return false;
-  value = (uint16_t)(Wire.read() << 8);
-  value |= (uint16_t)Wire.read();
-  return true;
+  uint32_t sum = 0;
+  for (int i = 0; i < 8; ++i) sum += analogRead(pins::kBatterySense);
+  return batteryFilter_.update(batteryMillivoltsFromAdc(sum / 8, 12, 3300, pins::kBatteryDivider));
 #else
-  (void)reg;
-  (void)value;
-  return false;
+  return -1;
 #endif
 }
 
 int Board::batteryPercent() {
-  uint16_t soc;
-  if (!readGauge(kGaugeSoc, soc)) return -1;
-  int percent = soc >> 8;
-  return percent > 100 ? 100 : percent;
+  int mv = batteryMillivolts();
+  return mv < 0 ? -1 : lipoPercent(mv);
 }
 
 bool Board::isCharging() {
-  uint16_t crate;
-  if (!isUsbPowered() || !readGauge(kGaugeCrate, crate)) return false;
-  return (int16_t)crate > 0;
+  int mv = batteryMillivolts();
+  return mv >= 0 && likelyCharging(isUsbPowered(), mv);
 }
 
 bool Board::isUsbPowered() const {

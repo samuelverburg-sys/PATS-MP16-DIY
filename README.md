@@ -12,9 +12,9 @@ This repository holds rev 2 of the kit and the firmware for both revisions:
 |---|---|---|
 | MCU | Waveshare RP2040-Zero module | RP2040 on the board, 16 MB flash, USB-C |
 | Keys | 4x4 matrix + Shift on its own pin | 3x 74HC165 shift registers: every key on its own input, no ghosting |
-| Power | LiPo, MCP73831 charger | LiPo with power path (plays while charging), reverse-polarity protection, fuel gauge, 5 V LED supply |
+| Power | LiPo, MCP73831 charger | LiPo with power path (plays while charging), reverse-polarity protection, battery voltage sense, 5 V LED supply |
 | MIDI | TRS In + Out | TRS In + Out (Type A), Thru selectable in the MIDI menu |
-| Expansion | 3-pin header | header with 4 analog inputs, mux select lines, I2C and power for a future pot board |
+| Expansion | 3-pin header | 4-pin I2C connector (JST SH, Qwiic / STEMMA QT pinout) for add-on boards |
 
 The rev 1 manual (printing, assembly, how the Chordmaker works):
 [PATS MP-16 DIY Kit Manual](https://docs.google.com/document/d/1Koq2ymRy1WZg_HTG9N3nUoAihR9oNaCTS2vanQYqxgY/).
