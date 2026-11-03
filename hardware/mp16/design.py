@@ -273,21 +273,24 @@ res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 0, block='mcu')
 # rev-1 position on the edge. /CHG goes to the LED only: wired to a GPIO too, it would feed the
 # switched-off RP2040 through the LED. Firmware reads charging from the fuel gauge, USB from /PGOOD.
 # ---------------------------------------------------------------------------
+# Run 9 (2026-11-03): in the free band under the OLED (x 47-71, y 24-30) instead of the channel between key
+# rows 2 and 3, where ISET, ITERM, VSYS, PGOOD_N and a ground area kept failing (hardware/mp16/ROUTING-LOG.md).
+CHG_AT = (58.0, 27.2)
 add('U13', 'Battery_Management:BQ24074RGT', 'Package_DFN_QFN:VQFN-16-1EP_3x3mm_P0.5mm_EP1.6x1.6mm',
     'BQ24074', {'13': 'VBUS', '10': 'VSYS', '11': 'VSYS', '2': 'VBAT', '3': 'VBAT', '1': 'TS', '4': 'GND',
                 '5': 'VSYS', '6': 'GND', '7': 'PGOOD_N', '9': 'CHG_N', '8': 'GND', '17': 'GND',
                 '12': 'ILIM', '14': None, '15': 'ITERM', '16': 'ISET'},
-    (56.0, 63.5), 0, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
+    CHG_AT, 180, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
     note='EN2=1, EN1=0: input limit set by ILIM; /CE=0: charging on; TMR open: default safety timers')
-cap0402('C50', '1u', 'VBUS', 'GND', (52.6, 61.0), 90, block='power')
-cap('C51', '10u', 'VSYS', 'GND', (59.6, 61.4), 90, block='power')
-cap('C52', '10u', 'VBAT', 'GND', (59.6, 65.6), 90, block='power')
-res0402('R20', '3k', 'ISET', 'GND', (55.6, 67.9), 0, block='power', note='charge current 890/R = 0.30 A')
-res0402('R21', '1k', 'ILIM', 'ILIM_R', (52.6, 66.1), 90, block='power',
+cap0402('C50', '1u', 'VBUS', 'GND', (61.4, 27.2), 90, block='power')
+cap('C51', '10u', 'VSYS', 'GND', (63.0, 27.2), 90, block='power')
+cap('C52', '10u', 'VBAT', 'GND', (65.0, 27.2), 90, block='power')
+res0402('R20', '3k', 'ISET', 'GND', (53.3, 27.2), 90, block='power', note='charge current 890/R = 0.30 A')
+res0402('R21', '1k', 'ILIM', 'ILIM_R', (52.0, 27.2), 90, block='power',
     note='input current limit: R21 + R22 = 1.18k, 1550/R = 1.3 A')
-res0402('R22', '180', 'ILIM_R', 'GND', (52.6, 68.2), 90, block='power')
-res('R23', '4.12k', 'ITERM', 'GND', (52.6, 63.5), 90, block='power', lcsc='C2960702', note='as TI typical application')
-res0402('R24', '10k', 'TS', 'GND', (55.6, 59.4), 0, block='power',
+res0402('R22', '180', 'ILIM_R', 'GND', (50.8, 27.2), 90, block='power')
+res('R23', '4.12k', 'ITERM', 'GND', (54.6, 27.2), 90, block='power', lcsc='C2960702', note='as TI typical application')
+res0402('R24', '10k', 'TS', 'GND', (49.6, 27.2), 90, block='power',
     note='fixed 10k: no temperature sensing (generic packs have no NTC)')
 add('D20', 'Device:LED', 'PATS:LED_SideView_XL-1606_RD', 'charge', {'1': 'LED_CHG', '2': 'VBUS'},
     side='B', block='power', pin_targets=REV1['CHARGE_LED'], mpn='XINGLIGHT XL-1606SURC', lcsc='C965860',
