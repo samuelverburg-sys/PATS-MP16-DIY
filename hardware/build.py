@@ -501,8 +501,11 @@ def _route(rec):
         if fan:  # ground via beside every top-side ground pad; the Ground class is then not routed
             from fanout import fanout
             for fnet in ['GND'] + [n for n in getattr(design, 'PLANES', {}).values() if n != 'GND']:
-                items, failed = fanout(board, net=fnet, at=getattr(design, 'GND_FANOUT_VIA', {}),
-                                       side=getattr(design, 'GND_FANOUT_SIDE', 'F'))
+                items, failed = [], []
+                for fside in getattr(design, 'GND_FANOUT_SIDE', 'F'):  # 'F', 'B' or 'BF': both sides
+                    it, fl = fanout(board, net=fnet, at=getattr(design, 'GND_FANOUT_VIA', {}), side=fside)
+                    items += it
+                    failed += fl
                 for t in items:
                     t.SetLocked(True)
                 print(f'route: {fnet} fan-out {len(items)} items' + (f'; no room at {", ".join(failed)}' if failed else ''),

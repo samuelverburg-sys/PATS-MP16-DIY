@@ -459,7 +459,7 @@ PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ES
                   'ISET', 'ITERM']                              # charger current setting
 PREROUTE_FIRST_MM = 15.0
 PREROUTE_MM = 3.0  # pieces of a net <= 3 mm apart: routed and locked before Freerouting (tools/finish.py prejoin_short)
-GND_FANOUT_SIDE = 'B'  # every SMD part is on the bottom: vias from their ground pads to the top pour
+GND_FANOUT_SIDE = 'BF' if MCU_SIDE == 'F' else 'B'  # top too: the RP2040's capacitors (a top pour island left C33 open)
 GND_STITCH = 4.0
 DECOUPLED = {'VDD_CORE', 'VBAT_GAUGE'}
 # No escape stubs: with them, quick mode left more open than without (2026-11-03).
