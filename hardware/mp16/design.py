@@ -238,7 +238,7 @@ res0402('R11', '10k', 'RUN', '+3V3', (31.4, 24.4), 0, block='mcu')
 add('Y1', 'Device:Crystal_GND24', 'Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm', '12MHz',
     {'1': 'XIN', '2': 'GND', '3': 'XTAL_OUT', '4': 'GND'}, (38.6, 21.6), 0, MCU_SIDE, block='mcu',
     mpn='Abracon ABM8-272-T3', lcsc='C20625731', note='12 MHz, CL 10 pF, approved by Abracon for the RP2040')
-res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 90, block='mcu', side=MCU_SIDE)
+res0402('R12', '1k', 'XOUT', 'XTAL_OUT', (35.8, rp_pin(21)[1] + 2.2), 270, block='mcu', side=MCU_SIDE)
 cap0402('C41', '15p', 'XIN', 'GND', (42.2, 21.0), 0, block='mcu', side=MCU_SIDE)
 cap0402('C42', '15p', 'XTAL_OUT', 'GND', (42.2, 22.4), 0, block='mcu', side=MCU_SIDE)
 
