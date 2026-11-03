@@ -448,8 +448,14 @@ def finish(board, clearance, only=None, widths=None, keep=()):
     nets = sorted(({s.net for s in shapes(board)[0]} & set(only or [])) if only else
                   ({s.net for s in shapes(board)[0]}) - SKIP_NETS) if True else []
     nets = [n for n in nets if n not in SKIP_NETS]
+    import os
     import time
+    t_all = time.time() + float(os.environ.get('FINISH_TOTAL_SECONDS', '600'))  # the whole finish
     for net in nets:
+        if time.time() > t_all:
+            print(f'finish: time budget used up; not tried: {net} and after', flush=True)
+            failed.append(net)
+            continue
         added = []
         t0 = time.time()
         ok, stuck = _join(board, grid, net, widths, added)

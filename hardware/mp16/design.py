@@ -213,8 +213,9 @@ add('U11', 'Memory_Flash:W25Q128JVS', 'Package_SO:SOIC-8_5.23x5.23mm_P1.27mm', '
      '7': 'QSPI_SD3', '8': '+3V3'}, (44.0, 15.6), 90, 'B', block='mcu', mpn='W25Q128JVSIQ', lcsc='C97521',
     note='16 MB; Arduino: Generic RP2040, boot2 W25Q080 QSPI /2')
 cap0402('C40', '100n', '+3V3', 'GND', (45.0, 10.1), 0, block='mcu')
-# BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low).
-res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (38.8, TOP_Y), 90, block='mcu')
+# BOOT: hold while plugging in or pressing RESET -> USB mass-storage bootloader (pulls QSPI_SS low). The 1 k
+# sits by the button, not above the QSPI pins (it walled their way to the flash in).
+res0402('R10', '1k', 'QSPI_SS', 'BOOT_BTN', (31.4, 26.0), 90, block='mcu')
 add('SW18', 'Switch:SW_Push', 'Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2', 'BOOT', {'1': 'BOOT_BTN', '2': 'GND'},
     (28.6, 26.5), 90, 'B', block='mcu', mpn='C&K KMR221GLFS', lcsc='C72443',
     note='reachable through the window of the open bottom shell')
@@ -252,8 +253,8 @@ add('F1', 'Device:Polyfuse', 'Fuse:Fuse_1206_3216Metric', '1.5A hold', {'1': 'VB
 add('U12', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'USB_DP', '6': 'USB_DP', '3': 'USB_DN', '4': 'USB_DN', '2': 'GND', '5': 'VBUS'},
     (29.6, 5.0), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C2687116')
-res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (37.6, TOP_Y), 90, block='mcu', note='USB series, RP2040 design guide')
-res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (36.6, TOP_Y), 90, block='mcu')
+res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (31.6, 7.4), 0, block='mcu', note='USB series, RP2040 design guide')
+res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 0, block='mcu')
 
 # ---------------------------------------------------------------------------
 # Charger + power path: BQ24074 (as the PATS audio board), USB in, VSYS out, 1S LiPo.
