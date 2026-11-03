@@ -58,7 +58,7 @@ Check every **unverified** LCSC number in the JLCPCB BOM preview (description, v
 | 1 | Q1 | DMG2305UX | SOT-23 | C150470 | DMG2305UX-7 | LCSC listing seen 2026-10-22 |
 | 3 | R26, R27, R29 | 100k | R_0402_1005Metric | C25741 |  | **unverified** |
 | 1 | Q2 | MMBT3906 | SOT-23 | C2940 | MMBT3906 | **unverified** |
-| 2 | R44, R45 | 1M | R_0402_1005Metric | - |  | none: choose a part |
+| 2 | R44, R45 | 1M | R_0402_1005Metric | C26083 |  | **unverified** |
 | 1 | SW20 | Power | SW_SPDT_MK-12C02-G015 | C2911519 | G-Switch MK-12C02-G015 | rev-1 BOM |
 | 1 | U16 | TPS22917 | SOT-23-6 | C2681320 | TPS22917DBVR | PATS checked list |
 | 1 | C54 | 1n | C_0402_1005Metric | C1523 |  | **unverified** |

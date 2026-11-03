@@ -42,7 +42,8 @@ add, res, cap = d.add, d.res, d.cap
 # hardware/PARTS.md with how sure each one is; check them all against the JLCPCB preview before ordering.
 C0402 = {'100n': 'C1525', '1u': 'C52923', '10n': 'C15195', '15p': 'C1548', '100p': 'C1546', '1n': 'C1523'}
 R0402 = {'0': 'C17168', '10': 'C25077', '27': 'C25100', '33': 'C25105', '220': 'C25091', '1k': 'C11702',
-         '1.5k': 'C25867', '2.2k': 'C25879', '4.7k': 'C25900', '5.1k': 'C25905', '10k': 'C25744', '100k': 'C25741'}
+         '1.5k': 'C25867', '2.2k': 'C25879', '4.7k': 'C25900', '5.1k': 'C25905', '10k': 'C25744', '100k': 'C25741',
+         '1M': 'C26083'}  # 1M: from memory (UNI-ROYAL 0402WGF1004TCE), unverified
 
 
 def cap0402(ref, value, a, b, at, rot=0, block='', side='B', **kw):
