@@ -454,10 +454,10 @@ GND_FANOUT = True
 # between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
 PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ESD -> 27R -> RP2040
                   'XIN', 'XOUT', 'XTAL_OUT',                    # crystal
-                  'QSPI_SCLK', 'QSPI_SS', 'QSPI_SD0', 'QSPI_SD1', 'QSPI_SD2', 'QSPI_SD3',  # flash
-                  'VDD_CORE',                                   # 1.1 V core supply and its capacitors
                   'ISET', 'ITERM']                              # charger current setting
-PREROUTE_FIRST_MM = 15.0
+# Not QSPI and VDD_CORE: routed first up to 15 mm, their shortest paths walled in the RP2040's GPIO pins
+# (ENC_A, MIDI_RX/TX, PGOOD_N, SWCLK left open, 2026-11-03); Freerouting fits them in fine.
+PREROUTE_FIRST_MM = 10.0
 PREROUTE_MM = 3.0  # pieces of a net <= 3 mm apart: routed and locked before Freerouting (tools/finish.py prejoin_short)
 GND_FANOUT_SIDE = 'BF' if MCU_SIDE == 'F' else 'B'  # top too: the RP2040's capacitors (a top pour island left C33 open)
 GND_STITCH = 4.0
