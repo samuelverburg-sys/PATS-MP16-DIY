@@ -151,11 +151,14 @@ res0402('R5', '4.7k', 'I2C_SCL', '+3V3', (46.6, 21.6), 270, block='connectors')
 # above, GPIO0-11 face right, GPIO18-29 left, USB and QSPI up (towards USB-C), crystal and SWD down.
 # GPIO allocation: docs/SPEC.md "RP2040 pin allocation" = board_pins.h.
 # ---------------------------------------------------------------------------
+# Each signal on the side of the chip it leaves towards (seen from above the RP2040 on the bottom is
+# mirrored: GPIO0-11 face right, 12-17 down, 18-29 left). Route 2-layer A (2026-11-03) left MIDI_RX, ENC_A/B
+# and PGOOD_N open: they had to wrap around the chip. MIDI on UART1 (TX GP8, RX GP21), I2C0 on GP12/13.
 GPIO = {
-    0: 'MIDI_TX', 1: 'MIDI_RX', 2: 'LED_DATA', 3: None, 4: 'I2C_SDA', 5: 'I2C_SCL', 6: 'ENC_A', 7: 'ENC_B',
-    8: None, 9: None, 10: None, 11: None, 12: None, 13: None, 14: None, 15: None,
-    16: 'SR_DATA', 17: 'SR_LOAD', 18: 'SR_CLK', 19: 'EXP_MOSI', 20: 'EXP_LATCH', 21: None, 22: 'PGOOD_N',
-    23: None, 24: None, 25: None, 26: 'AIN1', 27: 'AIN2', 28: 'AIN3', 29: 'AIN4',
+    0: None, 1: None, 2: 'LED_DATA', 3: 'PGOOD_N', 4: None, 5: None, 6: None, 7: None,
+    8: 'MIDI_TX', 9: None, 10: None, 11: None, 12: 'I2C_SDA', 13: 'I2C_SCL', 14: None, 15: None,
+    16: 'SR_DATA', 17: 'SR_LOAD', 18: 'SR_CLK', 19: 'EXP_MOSI', 20: 'EXP_LATCH', 21: 'MIDI_RX', 22: 'ENC_A',
+    23: 'ENC_B', 24: None, 25: None, 26: 'AIN1', 27: 'AIN2', 28: 'AIN3', 29: 'AIN4',
 }
 RP2040_GPIO_PIN = {g: p for g, p in zip(range(30), [2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18,
                                                      27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41])}

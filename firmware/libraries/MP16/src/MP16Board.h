@@ -29,7 +29,7 @@ class Board {
  public:
   Adafruit_NeoPixel pixels{ kPixelCount, pins::kLedData, NEO_GRB + NEO_KHZ800 };
   Adafruit_SSD1306 display{ kScreenWidth, kScreenHeight, &Wire, -1 };
-  SerialUART& midi = Serial1;  // the MIDI In and Out jacks (UART0), 31250 baud
+  SerialUART& midi = pins::kMidiUart == 0 ? Serial1 : Serial2;  // the MIDI In and Out jacks, 31250 baud
 
   // Pins, LEDs (off), OLED (blank, upside down as mounted), MIDI UART, encoder interrupts.
   // Returns false if the OLED does not answer (the rest still works).

@@ -24,25 +24,29 @@ and the PATS UI and audio boards (github.com/samuelverburg-sys/PATS, `pats-core/
 
 ## RP2040 pin allocation (proposal)
 
-Rev 1 pins are kept wherever the function still exists, so the rev-1 and rev-2 board configs differ only where the hardware does.
+The board layer picks the pins (and the UART) per revision from `board_pins.h`.
 
 | GPIO | Net | Function | Rev 1 (RP2040-Zero) |
 |---|---|---|---|
-| GP0 | MIDI_TX | UART0 TX -> MIDI Out (and soft Thru) | same |
-| GP1 | MIDI_RX | UART0 RX <- MIDI In opto | same |
 | GP2 | LED_DATA | SK6812 chain, via 74AHCT1G125 | same (no shifter) |
-| GP4 | I2C_SDA | I2C0: OLED 0x3C, MAX17048 0x36, expansion | same (Wire default) |
-| GP5 | I2C_SCL | I2C0 | same |
-| GP6 | ENC_A | encoder A | GP7 on rev 1 (rev 1 GP6 = encoder switch) |
-| GP7 | ENC_B | encoder B | GP8 on rev 1 |
-| GP16 | SR_DATA | SPI0 RX <- 74HC165 Q7 | rev 1: matrix |
+| GP3 | PGOOD_N | BQ24074 /PGOOD (USB power present) | new |
+| GP8 | MIDI_TX | UART1 TX -> MIDI Out (and soft Thru) | GP0, UART0 |
+| GP12 | I2C_SDA | I2C0: OLED 0x3C, MAX17048 0x36 | GP4 |
+| GP13 | I2C_SCL | I2C0 | GP5 |
+| GP16 | SR_DATA | 74HC165 Q7 (U3, nearest the RP2040) | rev 1: matrix |
 | GP17 | SR_LOAD | 74HC165 /PL | rev 1: matrix |
-| GP18 | SR_CLK | SPI0 SCK -> 74HC165 CP and expansion 74HC595 SRCLK | rev 1: matrix |
-| GP19 | EXP_MOSI | SPI0 TX -> expansion 74HC595 SER | new |
+| GP18 | SR_CLK | 74HC165 CP and expansion 74HC595 SRCLK | rev 1: matrix |
+| GP19 | EXP_MOSI | expansion 74HC595 SER | new |
 | GP20 | EXP_LATCH | expansion 74HC595 RCLK | new |
-| GP22 | PGOOD_N | BQ24074 /PGOOD (USB power present) | new |
+| GP21 | MIDI_RX | UART1 RX <- MIDI In opto | GP1, UART0 |
+| GP22 | ENC_A | encoder A | GP7 |
+| GP23 | ENC_B | encoder B | GP8 |
 | GP26-29 | AIN1-4 | ADC0-3 -> expansion header | GP26 was matrix row 3 |
-| GP3, 8-15, 21, 23-25 | spare | not connected | |
+| GP0, 1, 4-7, 9-11, 14, 15, 24, 25 | spare | not connected | |
+
+Why these pins (2026-11-03): the RP2040 sits on the bottom, so seen from above GPIO0-11 face right, 12-17 down
+and 18-29 left. Each signal leaves on the side it goes to (MIDI In and the encoder on the left, MIDI Out and the
+LEDs on the right, the OLED below); with the first allocation the router left the wrapped-around lines open.
 
 The encoder push and Shift go through the 74HC165 chain, as on the UI board. Chain order (nearest the
 RP2040 first): U3 (Shift, encoder push, 6 spares; top band), U1 (pads 1-8; between key rows 1 and 2),
