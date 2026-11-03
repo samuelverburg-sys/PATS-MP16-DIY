@@ -410,7 +410,7 @@ add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC
 # reach the header in this order without crossing (AIN1..4 left to right crossed; AIN4 failed twice).
 EXP_PINS = {1: '+3V3', 2: 'GND', 3: 'AIN4', 4: 'AIN3', 5: 'AIN2', 6: 'AIN1', 7: 'EXP_MOSI', 8: 'SR_CLK',
             9: 'EXP_LATCH', 10: 'GND', 11: 'I2C_SDA', 12: 'I2C_SCL'}
-J6_PIN1 = (5.6, 29.24)  # odd pins in the lower row, even pins 2.54 mm above; clear of H3 and the row-1 sockets
+J6_PIN1 = (6.4, 28.0)  # odd pins in the lower row, even pins 2.54 mm above; clear of H3 and the row-1 sockets
 add('J6', 'Connector_Generic:Conn_02x06_Odd_Even', 'Connector_PinHeader_2.54mm:PinHeader_2x06_P2.54mm_Vertical',
     'EXPANSION', {str(k): v for k, v in EXP_PINS.items()}, side='F', block='connectors',
     pin_targets={str(n): (J6_PIN1[0] + 2.54 * ((n - 1) // 2), J6_PIN1[1] - 2.54 * ((n - 1) % 2)) for n in EXP_PINS},
