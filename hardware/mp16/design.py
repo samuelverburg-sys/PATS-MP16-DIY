@@ -208,13 +208,14 @@ add('U10', 'MCU_RaspberryPi:RP2040', 'Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP
 # (pins 46, 47) and nothing above the QSPI pins (51-56).
 # MCU_SIDE 'F' (trial, 2026-11-03): the RP2040's capacitors, the flash and the crystal on the top side
 # under the OLED, so the bottom around the RP2040 is free for its signals (double-sided assembly).
+# C36 (VREG_IN, pin 44) left of C37 (VREG_VOUT, pin 45), as their pins (run 18: the other way round boxed pin 45 in).
 TOP_Y = 10.15  # the row between USB-C (its body ends at y 9.2) and the RP2040
 cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1', side=MCU_SIDE)
 cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10', side=MCU_SIDE)
 cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, block='mcu', note='IOVDD pin 33', side=MCU_SIDE)
 cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD', side=MCU_SIDE)
-cap0402('C37', '1u', 'VDD_CORE', 'GND', (30.4, TOP_Y), 90, block='mcu', note='VREG_VOUT', side=MCU_SIDE)
-cap0402('C36', '1u', '+3V3', 'GND', (31.6, TOP_Y), 90, block='mcu', note='VREG_IN', side=MCU_SIDE)
+cap0402('C37', '1u', 'VDD_CORE', 'GND', (31.6, TOP_Y), 90, block='mcu', note='VREG_VOUT', side=MCU_SIDE)
+cap0402('C36', '1u', '+3V3', 'GND', (30.4, TOP_Y), 90, block='mcu', note='VREG_IN', side=MCU_SIDE)
 cap0402('C35', '100n', '+3V3', 'GND', (33.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD', side=MCU_SIDE)
 cap0402('C39', '100n', 'VDD_CORE', 'GND', (29.2, TOP_Y), 90, block='mcu', note='DVDD pin 50', side=MCU_SIDE)
 cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22', side=MCU_SIDE)
@@ -475,7 +476,9 @@ GND_FANOUT = True
 # between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
 PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ESD -> 27R -> RP2040
                   'XIN', 'XOUT', 'XTAL_OUT',                    # crystal
-                  'ISET', 'ITERM']                              # charger current setting
+                  'ISET', 'ITERM',                              # charger current setting
+                  ('VDD_CORE', 12.0)]                           # 1.1 V: top row (pins 45, 50) to pin 23 (run 18;
+# on 4 layers the top layer over the RP2040 is free, so this one cannot wall in other pins)
 # Not PGOOD_N (charger /PGOOD -> GPIO3, ~50 mm): pre-routed with its own 60 mm reach it cost 6-11 open
 # connections elsewhere (run 7, ROUTING-LOG.md). A per-net reach is possible: ('NET', mm).
 # Not QSPI and VDD_CORE: routed first up to 15 mm, their shortest paths walled in the RP2040's GPIO pins

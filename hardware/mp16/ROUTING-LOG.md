@@ -45,7 +45,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
 | 11 | run 10 + expansion header J6 up and right, pin 1 (5.6, 29.24) -> (6.4, 28.0): its lower row sat on the busy bus at y 30 above key row 1; congestion 75.1 -> 62.6 (best of 9 positions scored) | | | | |
 | 16A | qualifying (A/B, 2 attempts each, side by side): run 15 + finish router knows inner layers, fan-out keeps vias off same-net plated holes, Qwiic J6 on the right edge between key rows 3 and 4; charger in the band under the OLED (`MP16_CHARGER=band`); congestion 37.7 | 10 / 43 connections | 3 (QSPI_SD1, SWCLK, TS) | 40 err (38 inner-layer tracks 0.16-0.30 mm from LED windows, 2 finish tracks 0.1293 mm), 3 unc | finish router ran on 4 layers without crashing; loses the A/B |
 | 16B | as 16A with the charger between key rows 2 and 3 (`MP16_CHARGER=keys`, pins' sides checked); congestion 39.0 | 40 / 13 connections | **1 (VDD_CORE)** | 25 err (23 inner-layer tracks by LED windows, 2 J6 courtyards), 2 unc | **wins the A/B**: charger between key rows 2 and 3 is the default; 10.2 min in all |
-| 17 | final: 16B + LED window keep-outs grown by the edge clearance, finish clearance +0.03, three parallel attempts and one promote round (`ROUTE_PROMOTE_PARALLEL = 1`), ground budget 900 s | | | | |
+| 17 | final: 16B + LED window keep-outs grown by the edge clearance, finish clearance +0.03, three parallel attempts and one promote round (`ROUTE_PROMOTE_PARALLEL = 1`), ground budget 900 s | 5 / 44 / 28; promote round 29 / 29 / 33 (kept the first) | **1 (VDD_CORE)** | **0 err**, 2 unc (both VDD_CORE) | every other net routed, ground whole. Promote round: VDD_CORE could not be routed even alone, so it was walled in before routing: C36 (pin 44) and C37 (pin 45) sat in swapped order, boxing pin 45 in (the order check skips nets with several capacitors) |
+| 18 | run 17 + C36/C37 swapped to their pins' order; VDD_CORE pre-routed first with a 12 mm reach (pre-route check: VDD_CORE whole before Freerouting) | | | | |
 
 ## What has been learnt
 
@@ -66,5 +67,7 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
   signal layer.
 - Locked items must keep the router's clearance including its margin, or the router starts with violations
   it cannot fix and routes around them badly.
+- A net that stays open when routed first, alone, is blocked by placement or locked items, not by
+  traffic: look at its pins' neighbours before rerunning.
 - Recurring trouble spot: the charger group (U13 and its resistors) in the channel between key rows 2 and 3:
   ISET, ITERM, VSYS, PGOOD_N and a ground area have each failed there.
