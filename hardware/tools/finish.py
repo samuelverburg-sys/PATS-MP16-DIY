@@ -58,11 +58,17 @@ NPTH = '<npth>'  # net name given to bare (non-plated) holes
 
 
 def shapes(board):
+    """Copper as shapes. The grid router routes on F.Cu and B.Cu only, but on a 4-layer board vias and
+    through-hole pads also reach the inner layers, and inner-layer tracks (Freerouting's) join pieces of a
+    net and block via positions (MP-16 run 15: an In2.Cu track crashed build_blocks)."""
     out, holes = [], []
     F, B = pcbnew.F_Cu, pcbnew.B_Cu
+    inner = [board.GetLayerID(f'In{k}.Cu') for k in range(1, board.GetCopperLayerCount() - 1)]
     for fp in board.GetFootprints():
         for pad in fp.Pads():
-            layers = [l for l in (F, B) if pad.IsOnLayer(l)]
+            layers = [l for l in [F, B] + inner if pad.IsOnLayer(l)]
+            if not (pad.IsOnLayer(F) or pad.IsOnLayer(B)):
+                layers = []
             b = pad.GetBoundingBox()
             c = b.Centre()
             if pad.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
@@ -87,7 +93,7 @@ def shapes(board):
     for t in board.GetTracks():
         if t.GetClass() == 'PCB_VIA':
             p = t.GetPosition()
-            out.append(Shape('circle', (nm(p.x), nm(p.y), nm(t.GetWidth()) / 2), [F, B], t.GetNetname(), t))
+            out.append(Shape('circle', (nm(p.x), nm(p.y), nm(t.GetWidth()) / 2), [F, B] + inner, t.GetNetname(), t))
             holes.append(Shape('circle', (nm(p.x), nm(p.y), nm(t.GetDrillValue()) / 2), [F, B], ''))
         else:
             s, e = t.GetStart(), t.GetEnd()
@@ -192,7 +198,8 @@ def build_blocks(grid, all_shapes, holes, net, width=TRACK_W):
         if s.net == net:
             continue
         for l in s.layers:
-            grid.mark(blk[l], s, rt)
+            if l in blk:  # inner-layer copper blocks only via positions (below)
+                grid.mark(blk[l], s, rt)
         grid.mark(vblk, s, rv)
     for h in holes:
         grid.mark(vblk, h, VIA_DRILL / 2 + 0.25)  # hole to hole
@@ -205,7 +212,8 @@ def build_blocks(grid, all_shapes, holes, net, width=TRACK_W):
         k = Shape('rect', (nm(bb.Centre().x), nm(bb.Centre().y), nm(bb.GetWidth()) / 2, nm(bb.GetHeight()) / 2), [], '')
         if no_tracks:
             for l in layers:
-                grid.mark(blk[l], k, rt)
+                if l in blk:
+                    grid.mark(blk[l], k, rt)
         if no_vias:
             grid.mark(vblk, k, rv)
     blk[F] |= ~grid.edge_ok_t

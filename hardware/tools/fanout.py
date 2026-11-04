@@ -34,6 +34,11 @@ def _obstacles(board, net):
     for fp in board.GetFootprints():
         for pad in fp.Pads():
             if pad.GetNetname() == net and pad.GetNetname():
+                if pad.GetDrillSizeX() > 0:  # a plated hole of the same net still needs hole-to-hole spacing
+                    # (MP-16 run 15: two ground vias drilled into USB-C's ground shell legs, 0.05 mm overlap)
+                    b = pad.GetBoundingBox()
+                    half = MM(max(pad.GetDrillSizeX(), pad.GetDrillSizeY()) / 2e6 + 0.25 + VIA_DRILL / 2 - VIA_D / 2 - GAP)
+                    out.append((b.Centre().x, b.Centre().y, half, half))
                 continue
             b = pad.GetBoundingBox()
             if pad.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:  # bare holes (key sockets' pegs): hole clearance

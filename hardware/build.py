@@ -310,7 +310,8 @@ def courtyards():
                 continue
             for layer in (pcbnew.F_CrtYd, pcbnew.B_CrtYd):
                 ca, cb = a.GetCourtyard(layer), b.GetCourtyard(layer)
-                if ca.OutlineCount() and cb.OutlineCount() and ca.Collide(cb):
+                if ca.OutlineCount() and cb.OutlineCount() and ca.Collide(cb) and \
+                        (ra, rb) not in {tuple(sorted(p)) for p in getattr(design, 'COURTYARD_OK', [])}:
                     clashes.append((a.GetReference(), b.GetReference(), board.GetLayerName(layer)))
             # A through-hole part occupies both sides: its pins are soldered on the far side, by hand on the
             # MP-16 (headers), so parts there need room (MP-16 run 11: J6's pins 0.3 mm from R2, C19, C20,
@@ -700,6 +701,50 @@ def _route(rec):
                     best = (score, snapshot(board), sorted(report), [], attempt)
             if best is None:
                 return False
+            # Promote round (design.ROUTE_PROMOTE_PARALLEL): the nets the best attempt left open are routed
+            # first, alone, on the pre-routed board, locked, and the parallel attempts run again around them
+            # (MP-16 2026-11-04: the finish closed 60-90 % of what Freerouting left, never all).
+            for pround in range(int(os.environ.get('ROUTE_PROMOTE_PARALLEL', getattr(design, 'ROUTE_PROMOTE_PARALLEL', 0)))):
+                if not best[0]:
+                    break
+                promoted = sorted(set(best[3]) | set(best[2]))
+                restore(board, before)
+                for t in list(board.GetTracks()):
+                    if not t.IsLocked():
+                        board.Remove(t)
+                res = freerouting(board, sorted(dsn_classes) + skipped, f'{tag}-promote{pround}',
+                                  lambda t: promote(promote(t, skip, 'S_') if skip else t, set(promoted)))
+                if not res:
+                    break
+                import_ses(board, res[0], min_w)
+                for t in board.GetTracks():
+                    t.SetLocked(True)
+                first_open = sorted(open_nets_report(board, set(promoted)))
+                print(f'route: promote round {pround + 1}: {", ".join(promoted)} routed first'
+                      + (f'; still open: {", ".join(first_open)}' if first_open else ''), flush=True)
+                promoted_base = snapshot(board)
+                jobs = [freerouting(board, ignore, f'{tag}-pr{pround}-par{k}', base, margin=m, run=False)
+                        for k, m in enumerate(pmargins)]
+                jobs = [j for j in jobs if j]
+                t_par = time.time()
+                with ThreadPoolExecutor(len(jobs)) as ex:
+                    results = list(ex.map(fr_run, jobs))
+                for m, res in zip(pmargins, results):
+                    restore(board, promoted_base)
+                    if not res:
+                        continue
+                    for t in list(board.GetTracks()):
+                        if not t.IsLocked():
+                            board.Remove(t)
+                    import_ses(board, res[0], min_w)
+                    report = open_nets_report(board, stage_nets)
+                    score = sum(len(v) for v in report.values())
+                    attempt += 1
+                    attempts.append({'margin': m, 'round': pround + 1, 'first': promoted, 'open': sorted(report),
+                                     's': round(time.time() - t_par)})
+                    print(f'route: promote round {pround + 1}, margin {m}: {score} open', flush=True)
+                    if score < best[0]:
+                        best = (score, snapshot(board), sorted(report), promoted, attempt)
             margins = []  # done: skip the sequential attempts
         for k, margin in enumerate(margins):
             MARGIN_OVERRIDE = margin

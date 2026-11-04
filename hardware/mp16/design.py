@@ -280,22 +280,34 @@ res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 0, block='mcu')
 # ---------------------------------------------------------------------------
 # Run 9 (2026-11-03): in the free band under the OLED (x 47-71, y 24-30) instead of the channel between key
 # rows 2 and 3, where ISET, ITERM, VSYS, PGOOD_N and a ground area kept failing (hardware/mp16/ROUTING-LOG.md).
-CHG_AT = (58.0, 27.2)
+# Two placements (A/B test 2026-11-04, MP16_CHARGER): 'band' under the OLED (runs 9-15, chosen when the RP2040's
+# parts were on the top side) and 'keys' between key rows 2 and 3 (the best 4-layer run, 2026-11-03 12:03).
+# (position, rotation) per part.
+CHARGER = os.environ.get('MP16_CHARGER', 'band')
+CHG = {
+    'band': {'U13': ((58.0, 27.2), 180), 'C50': ((63.2, 27.2), 90), 'C51': ((64.8, 27.2), 90),
+             'C52': ((66.8, 27.2), 90), 'R20': ((53.3, 27.2), 90), 'R21': ((60.8, 27.2), 270),
+             'R22': ((62.0, 27.2), 90), 'R23': ((54.6, 27.2), 90), 'R24': ((49.6, 27.2), 90)},
+    'keys': {'U13': ((56.0, 63.5), 180), 'C52': ((52.6, 62.8), 90), 'R24': ((53.0, 66.4), 0),
+             'R20': ((54.9, 66.6), 90), 'R23': ((56.2, 67.3), 90), 'C50': ((57.6, 66.6), 90),
+             'C51': ((59.4, 63.5), 90), 'R21': ((59.4, 66.2), 90), 'R22': ((59.0, 68.3), 0)},
+}[CHARGER]
+CHG_AT = CHG['U13'][0]
 add('U13', 'Battery_Management:BQ24074RGT', 'Package_DFN_QFN:VQFN-16-1EP_3x3mm_P0.5mm_EP1.6x1.6mm',
     'BQ24074', {'13': 'VBUS', '10': 'VSYS', '11': 'VSYS', '2': 'VBAT', '3': 'VBAT', '1': 'TS', '4': 'GND',
                 '5': 'VSYS', '6': 'GND', '7': 'PGOOD_N', '9': 'CHG_N', '8': 'GND', '17': 'GND',
                 '12': 'ILIM', '14': None, '15': 'ITERM', '16': 'ISET'},
-    CHG_AT, 180, 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
+    CHG_AT, CHG['U13'][1], 'B', block='power', mpn='BQ24074RGTR', lcsc='C2861252',
     note='EN2=1, EN1=0: input limit set by ILIM; /CE=0: charging on; TMR open: default safety timers')
-cap0402('C50', '1u', 'VBUS', 'GND', (63.2, 27.2), 90, block='power')
-cap('C51', '10u', 'VSYS', 'GND', (64.8, 27.2), 90, block='power')
-cap('C52', '10u', 'VBAT', 'GND', (66.8, 27.2), 90, block='power')
-res0402('R20', '3k', 'ISET', 'GND', (53.3, 27.2), 90, block='power', note='charge current 890/R = 0.30 A')
-res0402('R21', '1k', 'ILIM', 'ILIM_R', (60.8, 27.2), 270, block='power',
+cap0402('C50', '1u', 'VBUS', 'GND', *CHG['C50'], block='power')
+cap('C51', '10u', 'VSYS', 'GND', *CHG['C51'], block='power')
+cap('C52', '10u', 'VBAT', 'GND', *CHG['C52'], block='power')
+res0402('R20', '3k', 'ISET', 'GND', *CHG['R20'], block='power', note='charge current 890/R = 0.30 A')
+res0402('R21', '1k', 'ILIM', 'ILIM_R', *CHG['R21'], block='power',
     note='input current limit: R21 + R22 = 1.18k, 1550/R = 1.3 A')
-res0402('R22', '180', 'ILIM_R', 'GND', (62.0, 27.2), 90, block='power')
-res('R23', '4.12k', 'ITERM', 'GND', (54.6, 27.2), 90, block='power', lcsc='C2960702', note='as TI typical application')
-res0402('R24', '10k', 'TS', 'GND', (49.6, 27.2), 90, block='power',
+res0402('R22', '180', 'ILIM_R', 'GND', *CHG['R22'], block='power')
+res('R23', '4.12k', 'ITERM', 'GND', *CHG['R23'], block='power', lcsc='C2960702', note='as TI typical application')
+res0402('R24', '10k', 'TS', 'GND', *CHG['R24'], block='power',
     note='fixed 10k: no temperature sensing (generic packs have no NTC)')
 add('D20', 'Device:LED', 'PATS:LED_SideView_XL-1606_RD', 'charge', {'1': 'LED_CHG', '2': 'VBUS'},
     side='B', block='power', pin_targets=REV1['CHARGE_LED'], mpn='XINGLIGHT XL-1606SURC', lcsc='C965860',
@@ -312,7 +324,7 @@ res0402('R25', '1.5k', 'LED_CHG', 'CHG_N', (64.8, 6.1), 0, block='power')
 # The power section sits in the key area (2026-11-03): in the top band it shared 30 mm with the RP2040 and
 # the router left the RP2040's flash, LED and MIDI lines open. Charger between keys 7 and 8, load switch at
 # the right edge beside key 8, battery plug and protection between keys 11 and 12, gauge beside key 12.
-BAT_DIV_AT = [(72.6, 80.0), (73.8, 80.0), (26.6, 13.4)]  # R44, R45 where the gauge was; C53 by GPIO29 (pin 41)
+BAT_DIV_AT = [(63.8, 85.6), (65.0, 85.6), (26.6, 13.4)]  # R44, R45 beside Q1/Q2; C53 by GPIO29 (pin 41)
 BATTERY_PINS = {'1': (59.2, 82.0), '2': (59.2, 80.0)}  # rev-1 orientation: body to the left of the pins
 add('J7', 'Connector_Generic:Conn_01x02', 'PATS:JST_PH_S2B-PH-K-S_Horizontal',
     'LiPo 1S (pin 1 = GND, pin 2 = +)', {'1': 'GND', '2': 'BATT_P'}, side='B', block='power',
@@ -321,11 +333,11 @@ add('J7', 'Connector_Generic:Conn_01x02', 'PATS:JST_PH_S2B-PH-K-S_Horizontal',
 add('Q1', 'Device:Q_PMOS_GSD', 'Package_TO_SOT_SMD:SOT-23', 'DMG2305UX', {'1': 'Q1_G', '2': 'VBAT', '3': 'BATT_P'},
     (53.6, 86.3), 0, 'B', block='power', mpn='DMG2305UX-7', lcsc='C150470',
     note='-20 V, 4.2 A, 52 mOhm at -4.5 V; body diode from the battery to VBAT')
-res0402('R26', '100k', 'Q1_G', 'GND', (72.6, 85.6), 0, block='power')
+res0402('R26', '100k', 'Q1_G', 'GND', (61.2, 85.6), 90, block='power')
 add('Q2', 'Transistor_BJT:MMBT3906', 'Package_TO_SOT_SMD:SOT-23', 'MMBT3906', {'1': 'Q2_B', '2': 'VBAT', '3': 'Q1_G'},
     (58.0, 86.3), 0, 'B', block='power', mpn='MMBT3906', lcsc='C2940',
     note='pulls Q1 gate to VBAT (off) while the battery pin is below VBAT')
-res0402('R27', '100k', 'Q2_B', 'BATT_P', (72.6, 87.2), 0, block='power')
+res0402('R27', '100k', 'Q2_B', 'BATT_P', (62.4, 85.6), 90, block='power')
 
 # Battery voltage (Samuel 2026-11-03: a divider instead of the MAX17048 gauge): VBAT / 2 into ADC3 (GPIO29, as
 # the Pico's VSYS sense). 1M + 1M draw 2 uA from the pack, also when switched off (years for a 300 mAh pack);
@@ -409,10 +421,11 @@ add('U20', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC
 # Replaces rev 1's 3-pin analog header.
 # ---------------------------------------------------------------------------
 # I2C expansion (Samuel 2026-11-03, instead of the 2x6 header): a 4-pin JST SH, Qwiic / STEMMA QT pinout
-# (GND, 3V3, SDA, SCL), SMD on the bottom (assembled), at the bottom edge between keys 14 and 15, mouth
-# towards that edge (the band under the OLED has a mounting hole at each end, H3 and H4, in a plug's way). Add-ons (ADC, multiplexer,
+# (GND, 3V3, SDA, SCL), SMD on the bottom (assembled), on the right edge between key rows 3 and 4, mouth 0.4 mm
+# inside the edge (Samuel 2026-11-04: a side edge). The strip beside the LED column is 5.9 mm wide, the
+# connector 6.6 mm deep: its outline overlaps D13's and SW16's (copper 0.58 mm from D13, 0.33 mm from the edge). Add-ons (ADC, multiplexer,
 # sensors) sit on the I2C bus with the OLED. The 2x6 header's analog lines failed in 4 of 9 routes.
-QWIIC_AT, QWIIC_ROT = (36.7, 99.6), 0
+QWIIC_AT, QWIIC_ROT = (73.1, 84.6), 90
 add('J6', 'Connector_Generic:Conn_01x04', 'Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal',
     'I2C (Qwiic)', {'1': 'GND', '2': '+3V3', '3': 'I2C_SDA', '4': 'I2C_SCL'}, QWIIC_AT, QWIIC_ROT, 'B',
     block='connectors', extra_pads={'MP': 'GND'}, mpn='JST SM04B-SRSS-TB(LF)(SN)', lcsc='C160404')
@@ -488,6 +501,9 @@ HIDE_REFS = ['SW18', 'SW19', 'TP1', 'TP2', 'TP3']  # named by the labels above
 # Through-hole parts over parts on the other side, accepted: the encoder above the In jack is the rev-1
 # arrangement (both fixed positions).
 THROUGH_HOLE_OVERLAP_OK = [('ENC1', 'J4')]
+# Courtyard overlaps accepted on purpose (copper clearance checked by DRC): the Qwiic connector beside the
+# right edge (see J6).
+COURTYARD_OK = [('J6', 'D13'), ('J6', 'SW17')]
 
 # DRC findings accepted on purpose:
 # - mounting holes at the MP-16 positions sit inside switch outlines (as on the rev-1 and UI boards);
