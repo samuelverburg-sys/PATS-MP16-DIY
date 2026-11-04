@@ -476,9 +476,9 @@ GND_FANOUT = True
 # between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
 PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ESD -> 27R -> RP2040
                   'XIN', 'XOUT', 'XTAL_OUT',                    # crystal
-                  'ISET', 'ITERM',                              # charger current setting
-                  ('VDD_CORE', 12.0)]                           # 1.1 V: top row (pins 45, 50) to pin 23 (run 18;
-# on 4 layers the top layer over the RP2040 is free, so this one cannot wall in other pins)
+                  'ISET', 'ITERM']                              # charger current setting
+# Not VDD_CORE (run 18): pre-routed across the RP2040 its path wound over the top layer above the top pin row,
+# with vias inside the pin ring, and walled in QSPI_SD0/SD1 and +3V3 (open even when routed first, alone).
 # Not PGOOD_N (charger /PGOOD -> GPIO3, ~50 mm): pre-routed with its own 60 mm reach it cost 6-11 open
 # connections elsewhere (run 7, ROUTING-LOG.md). A per-net reach is possible: ('NET', mm).
 # Not QSPI and VDD_CORE: routed first up to 15 mm, their shortest paths walled in the RP2040's GPIO pins
