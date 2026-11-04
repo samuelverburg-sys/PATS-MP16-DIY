@@ -855,7 +855,8 @@ def _route(rec):
         return not report
     if report:
         from finish import finish as run
-        done, failed = run(board, getattr(design, 'CLEARANCE', 0.2) + 0.02, sorted(report),
+        # +0.03: grid rounding at pad entries cost up to 0.02 (run 16A: 0.1293 mm against 0.13)
+        done, failed = run(board, getattr(design, 'CLEARANCE', 0.2) + 0.03, sorted(report),
                            {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
                            keep=NO_RIPUP())
         rec['finish'] = {'joined': done, 'failed': failed}

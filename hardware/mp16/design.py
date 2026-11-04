@@ -283,7 +283,7 @@ res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 0, block='mcu')
 # Two placements (A/B test 2026-11-04, MP16_CHARGER): 'band' under the OLED (runs 9-15, chosen when the RP2040's
 # parts were on the top side) and 'keys' between key rows 2 and 3 (the best 4-layer run, 2026-11-03 12:03).
 # (position, rotation) per part.
-CHARGER = os.environ.get('MP16_CHARGER', 'band')
+CHARGER = os.environ.get('MP16_CHARGER', 'keys')  # A/B 2026-11-04: keys 1 net open after finish, band 3
 CHG = {
     'band': {'U13': ((58.0, 27.2), 180), 'C50': ((63.2, 27.2), 90), 'C51': ((64.8, 27.2), 90),
              'C52': ((66.8, 27.2), 90), 'R20': ((53.3, 27.2), 90), 'R21': ((60.8, 27.2), 270),
@@ -469,6 +469,7 @@ ROUTE_PARALLEL = 3  # three Freerouting runs at once (margins 0.02, 0, 0.04 mm),
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
 ROUTE_TIMEOUT = 1500  # s per Freerouting run; 4 layers took 55-130 s per pass (run 14 timed out at 900)
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
+ROUTE_PROMOTE_PARALLEL = 1  # after the parallel attempts: the nets left open routed first, then the attempts again
 GND_FANOUT = True
 # Routed first, in this order, deterministically (tools/finish.py prejoin_short), up to PREROUTE_FIRST_MM
 # between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
