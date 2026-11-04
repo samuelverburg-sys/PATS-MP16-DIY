@@ -647,7 +647,8 @@ def _route(rec):
             pj_joined, pj_stuck = prejoin_short(board, getattr(design, 'CLEARANCE', 0.2) + 0.05,
                           {n: net_width(n) for n in {x for p in design.parts for x in p.pins.values() if x}},
                           design.PREROUTE_MM, skip=set(getattr(design, 'PLANES', {}).values()),
-                          first=getattr(design, 'PREROUTE_FIRST', ()), first_mm=getattr(design, 'PREROUTE_FIRST_MM', 12.0))
+                          first=getattr(design, 'PREROUTE_FIRST', ()), first_mm=getattr(design, 'PREROUTE_FIRST_MM', 12.0),
+                          keep_inside=getattr(design, 'PREROUTE_KEEP_INSIDE', ()))
             rec['prejoin'] = {'joined': pj_joined, 'stuck': pj_stuck, 's': round(time.time() - t_pj)}
         if getattr(design, 'ESCAPE', None):  # locked escape stubs from the fine-pitch parts' signal pins
             from fanout import escapes

@@ -399,7 +399,7 @@ def _join(board, grid, net, widths, added):
         added += add_path(board, grid, path, net, F, B, w)
 
 
-def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), first_mm=12.0):
+def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), first_mm=12.0, keep_inside=()):
     """Before autorouting: join every two pieces of a net that lie at most `max_mm` apart (a part's own
     pins, a part and its capacitor), closest first, with the grid router, and lock the new tracks.
     Freerouting failed such 1-3 mm hops in crowded corners and lost passes on them (MP-16, 2026-11-03);
@@ -408,6 +408,30 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), 
     F, B = pcbnew.F_Cu, pcbnew.B_Cu
     grid = Grid(board, clearance)
     t0 = time.time()
+    # Inside the pin ring of the parts in `keep_inside` (fine-pitch QFNs) no pre-routed track or via: hops
+    # between neighbouring same-net pins went through the ring and dropped vias there, walling the other
+    # pins' escapes in (MP-16 run 19: 29 +3V3 tracks and 6 vias inside the RP2040's ring).
+    inside = np.zeros(grid.X.shape, bool)
+    for ref in keep_inside:
+        fp = board.FindFootprintByReference(ref)
+        if not fp:
+            continue
+        c = fp.GetPosition()
+        cx, cy = nm(c.x), nm(c.y)
+        pads = [p for p in fp.Pads() if p.GetNumber()]
+        big = max(pads, key=lambda p: p.GetBoundingBox().GetWidth() * p.GetBoundingBox().GetHeight())
+        rx = ry = 1e9
+        for p in pads:
+            if p is big:
+                continue
+            bb = p.GetBoundingBox()
+            px, py, hw, hh = nm(bb.Centre().x) - cx, nm(bb.Centre().y) - cy, nm(bb.GetWidth()) / 2, nm(bb.GetHeight()) / 2
+            if abs(px) > abs(py):
+                rx = min(rx, abs(px) - hw)
+            else:
+                ry = min(ry, abs(py) - hh)
+        if rx < 1e8 and ry < 1e8:
+            inside |= (np.abs(grid.X - cx) < rx) & (np.abs(grid.Y - cy) < ry)
 
     def gap(ga, gb):
         best = 1e9
@@ -456,6 +480,10 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), 
             path = None
             for w in sorted({max((widths or {}).get(net, TRACK_W), TRACK_W), TRACK_W}, reverse=True):
                 blk, vblk = build_blocks(grid, all_shapes, holes, net, w)
+                if inside.any():
+                    blk[F] |= inside & ~src[F] & ~dst[F]
+                    blk[B] |= inside & ~src[B] & ~dst[B]
+                    vblk |= inside
                 path = astar(grid, blk, vblk, src, dst, F, B)
                 if path:
                     break

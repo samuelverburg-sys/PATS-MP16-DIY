@@ -47,7 +47,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
 | 16B | as 16A with the charger between key rows 2 and 3 (`MP16_CHARGER=keys`, pins' sides checked); congestion 39.0 | 40 / 13 connections | **1 (VDD_CORE)** | 25 err (23 inner-layer tracks by LED windows, 2 J6 courtyards), 2 unc | **wins the A/B**: charger between key rows 2 and 3 is the default; 10.2 min in all |
 | 17 | final: 16B + LED window keep-outs grown by the edge clearance, finish clearance +0.03, three parallel attempts and one promote round (`ROUTE_PROMOTE_PARALLEL = 1`), ground budget 900 s | 5 / 44 / 28; promote round 29 / 29 / 33 (kept the first) | **1 (VDD_CORE)** | **0 err**, 2 unc (both VDD_CORE) | every other net routed, ground whole. Promote round: VDD_CORE could not be routed even alone, so it was walled in before routing: C36 (pin 44) and C37 (pin 45) sat in swapped order, boxing pin 45 in (the order check skips nets with several capacitors) |
 | 18 | run 17 + C36/C37 swapped to their pins' order; VDD_CORE pre-routed first with a 12 mm reach (pre-route check: VDD_CORE whole before Freerouting) | 42 / 44 / 17; promote: QSPI_SD0, QSPI_SD1, +3V3 open even routed first | stopped | - | the VDD_CORE pre-route (A*, 12 mm) wound over the top layer above the RP2040's top row, vias inside the pin ring, walling the QSPI escapes in. Pre-route only nets that stay local |
-| 19 | run 17 + C36/C37 swapped only (no VDD_CORE pre-route; pin 45 to C37 is a short hop the normal pre-route joins) | | | | |
+| 19 | run 17 + C36/C37 swapped only (no VDD_CORE pre-route; pin 45 to C37 is a short hop the normal pre-route joins) | 18 / 49 / 50; promote 31-33 | 3 (QSPI_SCLK, QSPI_SD0, SWDIO) | **0 err**, 3 unc | VDD_CORE now joined (the swap was right). **Root cause of the RP2040 failures since the pre-route came in:** short hops between neighbouring same-net RP2040 pins ran through the pin ring: before routing, 29 +3V3 and 24 VDD_CORE tracks and 6 vias (+3V3, USB_DP, BAT_SENSE, VDD_CORE, XOUT) sat inside the ring, where the other pins escape. Each run the ring's leftovers decided which RP2040 nets failed |
+| 20 (prepared, not run) | run 19 + `PREROUTE_KEEP_INSIDE = ['U10', 'U13']`: no pre-routed tracks or vias inside the RP2040's and the charger's pin rings (pre-route test: 3 items inside instead of 37 tracks and 6 vias; RP_USB_DN, VDD_CORE, XOUT left to Freerouting) | | | | |
 
 ## What has been learnt
 
@@ -70,5 +71,7 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
   it cannot fix and routes around them badly.
 - A net that stays open when routed first, alone, is blocked by placement or locked items, not by
   traffic: look at its pins' neighbours before rerunning.
+- The pre-route must not use a fine-pitch chip's pin ring: neighbouring same-net pins are 0.4 mm apart, so
+  the grid router joins them through the ring and drops vias there, where every other pin escapes.
 - Recurring trouble spot: the charger group (U13 and its resistors) in the channel between key rows 2 and 3:
   ISET, ITERM, VSYS, PGOOD_N and a ground area have each failed there.
