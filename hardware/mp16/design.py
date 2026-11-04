@@ -515,4 +515,6 @@ DRC_ACCEPTED = [('courtyards_overlap', r'Footprint H\d+', r'Footprint SW\d+'),
                 # power switch: rev-1 part and position (fixed); its shield pads sit 0.2 mm from the edge, as on
                 # the rev-1 board JLCPCB built (JLCPCB's minimum; 0.3 mm elsewhere on this board)
                 ('copper_edge_clearance', r'Edge\.Cuts', r'Pad SH \[GND\] of SW20\b'),
-                ('copper_edge_clearance', r'Arc on Edge\.Cuts', r'Pad \d \[[^\]]*\] of D(1[0-7]|[1-9]) ')]
+                ('copper_edge_clearance', r'Arc on Edge\.Cuts', r'Pad \d \[[^\]]*\] of D(1[0-7]|[1-9]) '),
+                # the Qwiic connector beside the right edge (Samuel 2026-11-04; copper clearance kept, see J6)
+                ('courtyards_overlap', r'Footprint J6\b', r'Footprint (D13|SW17)\b')]

@@ -494,6 +494,23 @@ def freerouting(board, ignore, tag, edit=None, margin=None, run=True):
         box = [xs[0] + d, ys[0] + d, xs[1] - d, ys[1] - d]
         path = f'{box[2]:g} {box[1]:g}  {box[0]:g} {box[1]:g}  {box[0]:g} {box[3]:g}  {box[2]:g} {box[3]:g}  {box[2]:g} {box[1]:g}'
         text = text[:m.start(1)] + path + text[m.end(1):]
+    # Cut-outs inside the board (the MP-16's 17 LED windows) are exported as keep-outs on every signal layer
+    # with no edge clearance: inner-layer tracks ran 0.16-0.30 mm from their edges (MP-16 run 16B, rule
+    # 0.3; the outer layers are kept off by the LED pads). Each is grown outward by the same inset as the
+    # outline, per axis about its centre (the windows are rounded rectangles).
+    if edge > clear:
+        d = edge + 20
+
+        def grow(km):
+            vals = [float(v) for v in km.group(3).split()]
+            xs_, ys_ = vals[0::2], vals[1::2]
+            cx, cy = (min(xs_) + max(xs_)) / 2, (min(ys_) + max(ys_)) / 2
+            out = []
+            for x, y in zip(xs_, ys_):
+                out += [x + d * ((x > cx) - (x < cx)), y + d * ((y > cy) - (y < cy))]
+            return f'(keepout "" (polygon signal {km.group(2)}  ' + '  '.join(
+                f'{out[i]:g} {out[i + 1]:g}' for i in range(0, len(out), 2)) + ')'
+        text = re.sub(r'\(keepout "" \(polygon (signal) ([0-9.]+)\s+([-0-9.\s]+)\)', grow, text)
     if edit:
         text = edit(text)
     open(dsn, 'w').write(text)
