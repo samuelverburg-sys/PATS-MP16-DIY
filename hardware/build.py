@@ -186,13 +186,15 @@ def facing():
             net = q.GetNetname()
             if not net or net == 'GND' or not q.GetNumber():
                 continue
-            parts_on = [(p, f) for f in board.GetFootprints() if f.GetReference()[0] in 'RC'
-                        for p in f.Pads() if p.GetNetname() == net and
-                        math.hypot(p.GetPosition().x - q.GetPosition().x, p.GetPosition().y - q.GetPosition().y)
-                        < pcbnew.FromMM(8)]
-            if len(parts_on) != 1:
+            dq = lambda p: math.hypot(p.GetPosition().x - q.GetPosition().x, p.GetPosition().y - q.GetPosition().y)
+            parts_on = sorted(((dq(p), p, f) for f in board.GetFootprints() if f.GetReference()[0] in 'RC'
+                               for p in f.Pads() if p.GetNetname() == net and dq(p) < pcbnew.FromMM(8)),
+                              key=lambda t: t[0])
+            # the nearest part on the net serves the pin (nets with several capacitors, e.g. VDD_CORE, were
+            # skipped: run 17's C36/C37, swapped against pins 44/45, boxed pin 45 in)
+            if not parts_on:
                 continue
-            p, f = parts_on[0]
+            _, p, f = parts_on[0]
             dx, dy = q.GetPosition().x - c.x, q.GetPosition().y - c.y
             side = ('x', 1 if dx > 0 else -1) if abs(dx) > abs(dy) else ('y', 1 if dy > 0 else -1)
             along = (lambda v: v.y) if side[0] == 'x' else (lambda v: v.x)

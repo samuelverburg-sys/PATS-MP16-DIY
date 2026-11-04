@@ -43,3 +43,8 @@ When the PATS pipeline improves, bring changes over file by file and note them b
 | `build.py` | placement check: through-hole parts against the other side's parts (`design.THROUGH_HOLE_OVERLAP_OK`) | a header moved 0.3 mm from bottom parts passed the per-side check |
 | `build.py` | facing check: two neighbouring chip pins whose straight connections to a connector, test pad or encoder cross (connector pads taken along its long axis) | AIN, ENC and SWD nets each failed on such a crossing |
 | `tools/congestion.py`, `build.py preflight` | routing demand against room per 2 mm window, 0.25 mm cells, averaged over shifted grids; preflight step; route needs `ROUTE_NOTE` | to prepare runs; a 0.5 mm grid aliased with 2.54 mm headers |
+| `tools/finish.py` | inner layers: vias and through-hole pads reach them, inner-layer tracks join pieces and block via cells (routing stays on F.Cu/B.Cu) | an In2.Cu track crashed build_blocks (MP-16 run 15) |
+| `tools/fanout.py` | vias keep hole-to-hole spacing from same-net plated holes | two ground vias drilled into USB-C's shell legs |
+| `build.py` | `ROUTE_PROMOTE_PARALLEL`: after the parallel attempts, the nets left open routed first, alone, then the attempts again | the finish closed 60-90 % of what Freerouting left, never all |
+| `build.py` | DSN: interior cut-out keep-outs grown by the edge clearance | inner-layer tracks 0.16-0.30 mm from LED windows |
+| `build.py` | `design.COURTYARD_OK`; order check takes each pin's nearest part (nets with several capacitors were skipped) | C36/C37 swapped against their pins walled VDD_CORE in |
