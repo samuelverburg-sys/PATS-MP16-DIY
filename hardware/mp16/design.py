@@ -209,15 +209,17 @@ add('U10', 'MCU_RaspberryPi:RP2040', 'Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP
 # MCU_SIDE 'F' (trial, 2026-11-03): the RP2040's capacitors, the flash and the crystal on the top side
 # under the OLED, so the bottom around the RP2040 is free for its signals (double-sided assembly).
 # C36 (VREG_IN, pin 44) left of C37 (VREG_VOUT, pin 45), as their pins (run 18: the other way round boxed pin 45 in).
+# R15/R16 turned so their RP2040 pads face pins 46/47, and C39/C36/C37 0.2 mm left of the USB lane (run 22:
+# RP_USB_DN had to cross back between C37 and C35, a 0.88 mm gap).
 TOP_Y = 10.15  # the row between USB-C (its body ends at y 9.2) and the RP2040
 cap0402('C30', '100n', '+3V3', 'GND', (rp_pin(1)[0] + 1.9, rp_pin(1)[1]), 90, block='mcu', note='IOVDD pin 1', side=MCU_SIDE)
 cap0402('C31', '100n', '+3V3', 'GND', (rp_pin(10)[0] + 1.9, rp_pin(10)[1]), 90, block='mcu', note='IOVDD pin 10', side=MCU_SIDE)
 cap0402('C33', '100n', '+3V3', 'GND', (rp_pin(33)[0] - 1.9, rp_pin(33)[1]), 90, block='mcu', note='IOVDD pin 33', side=MCU_SIDE)
 cap0402('C34', '100n', '+3V3', 'GND', (rp_pin(42)[0] - 1.9, rp_pin(42)[1]), 90, block='mcu', note='IOVDD pin 42, ADC_AVDD', side=MCU_SIDE)
-cap0402('C37', '1u', 'VDD_CORE', 'GND', (31.6, TOP_Y), 90, block='mcu', note='VREG_VOUT', side=MCU_SIDE)
-cap0402('C36', '1u', '+3V3', 'GND', (30.4, TOP_Y), 90, block='mcu', note='VREG_IN', side=MCU_SIDE)
+cap0402('C37', '1u', 'VDD_CORE', 'GND', (31.4, TOP_Y), 90, block='mcu', note='VREG_VOUT', side=MCU_SIDE)
+cap0402('C36', '1u', '+3V3', 'GND', (30.2, TOP_Y), 90, block='mcu', note='VREG_IN', side=MCU_SIDE)
 cap0402('C35', '100n', '+3V3', 'GND', (33.4, TOP_Y), 90, block='mcu', note='IOVDD pin 49, USB_VDD', side=MCU_SIDE)
-cap0402('C39', '100n', 'VDD_CORE', 'GND', (29.2, TOP_Y), 90, block='mcu', note='DVDD pin 50', side=MCU_SIDE)
+cap0402('C39', '100n', 'VDD_CORE', 'GND', (29.0, TOP_Y), 90, block='mcu', note='DVDD pin 50', side=MCU_SIDE)
 cap0402('C32', '100n', '+3V3', 'GND', (rp_pin(22)[0], rp_pin(22)[1] + 2.2), 90, block='mcu', note='IOVDD pin 22', side=MCU_SIDE)
 cap0402('C38', '100n', 'VDD_CORE', 'GND', (rp_pin(23)[0] - 1.2, rp_pin(23)[1] + 2.2), 90, block='mcu', note='DVDD pin 23', side=MCU_SIDE)
 
@@ -269,8 +271,8 @@ add('F1', 'Device:Polyfuse', 'Fuse:Fuse_1206_3216Metric', '1.5A hold', {'1': 'VB
 add('U12', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'USB_DP', '6': 'USB_DP', '3': 'USB_DN', '4': 'USB_DN', '2': 'GND', '5': 'VBUS'},
     (29.6, 5.0), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C2687116')
-res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (31.6, 7.4), 0, block='mcu', note='USB series, RP2040 design guide')
-res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 0, block='mcu')
+res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (31.6, 7.4), 180, block='mcu', note='USB series, RP2040 design guide')
+res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 180, block='mcu')
 
 # ---------------------------------------------------------------------------
 # Charger + power path: BQ24074 (as the PATS audio board), USB in, VSYS out, 1S LiPo.
