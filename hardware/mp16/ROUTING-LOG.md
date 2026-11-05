@@ -50,8 +50,8 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
 | 19 | run 17 + C36/C37 swapped only (no VDD_CORE pre-route; pin 45 to C37 is a short hop the normal pre-route joins) | 18 / 49 / 50; promote 31-33 | 3 (QSPI_SCLK, QSPI_SD0, SWDIO) | **0 err**, 3 unc | VDD_CORE now joined (the swap was right). **Root cause of the RP2040 failures since the pre-route came in:** short hops between neighbouring same-net RP2040 pins ran through the pin ring: before routing, 29 +3V3 and 24 VDD_CORE tracks and 6 vias (+3V3, USB_DP, BAT_SENSE, VDD_CORE, XOUT) sat inside the ring, where the other pins escape. Each run the ring's leftovers decided which RP2040 nets failed |
 | 20 | run 19 + `PREROUTE_KEEP_INSIDE = ['U10', 'U13']`: no pre-routed tracks or vias inside the RP2040's and the charger's pin rings (pre-route test: 3 items inside instead of 37 tracks and 6 vias; RP_USB_DN, VDD_CORE, XOUT left to Freerouting) | 38 / 45 / 43; promote 13 / 12 / 15 | **1 (RP_USB_DN)** | **0 err**, 1 unc | ties run 17. Freerouting alone did much worse without the ring hops (it had to join neighbouring same-net pins itself; one attempt took 22 min), but the promote round and finish recovered to 1. RP_USB_DN: R15/R16's RP2040 pads faced away from pins 46/47, so the USB pair crossed back through a 0.88 mm gap between C37 and C35 |
 | 22 (prepared, not run) | run 20 + R15/R16 turned (RP2040 pads above pins 46/47), C39/C36/C37 0.2 mm left: the USB lane is clear | | | | |
-| 21G (record) | grid mode: the grid router routes every net it can (any length), one Freerouting attempt, finish. Pre-route alone: 256 hops in 858 s, 22 connections in 21 nets left | | | | |
-| 21F (record) | freerouting mode: no fan-out, no pre-route, Freerouting routes everything incl. ground, 20 passes, 3 attempts + promote, finish | | | | |
+| 21G (record) | grid mode: the grid router routes every net it can (any length), one Freerouting attempt, finish. Pre-route alone: 256 hops in 858 s, 22 connections in 21 nets left | 1 attempt: 9 connections in 9 nets | 6 (KEY_SHIFT, LED_D2, RP_USB_DN, SR_C21, SR_DATA, SR_LOAD) | 0 err, 6 unc | 39.4 min (pre-route 14.4, Freerouting 13.6, finish 11.2). Deterministic and repeatable (the pre-route gave the same 256 hops twice), but the grid router's long paths take room the shift-register and key lines need |
+| 21F (record) | freerouting mode: no fan-out, no pre-route, Freerouting routes everything incl. ground, 20 passes, 3 attempts + promote, finish | 39 / 49 / 38; promote 12 / 13 / 13 | 2 signal nets (RUN, SWCLK) + 14 ground islands | 4 err (ground tracks at the edge), 16 unc | 27.1 min, the fastest, but without the fan-out the outer ground pours fall apart into islands no step joins (plane boards skip ground joining). Every net could be routed when routed first: without pre-route nothing is walled in |
 
 ## What has been learnt
 
@@ -76,5 +76,9 @@ pre-route (`tools/finish.py prejoin_short`), the finish, and everything in `desi
   traffic: look at its pins' neighbours before rerunning.
 - The pre-route must not use a fine-pitch chip's pin ring: neighbouring same-net pins are 0.4 mm apart, so
   the grid router joins them through the ring and drops vias there, where every other pin escapes.
+- Record runs (2026-11-05), same board: balanced (run 20) 1 open, 0 errors, 35 min; Freerouting-heavy (21F)
+  2 open + 14 ground islands, 4 errors, 27 min; grid-heavy (21G) 6 open, 0 errors, 39 min. Each side does
+  what the other cannot: the fan-out and short pre-routed hops make the ground and the dense pin joins
+  certain; Freerouting with a promote round handles the board-wide routing; the finish closes the rest.
 - Recurring trouble spot: the charger group (U13 and its resistors) in the channel between key rows 2 and 3:
   ISET, ITERM, VSYS, PGOOD_N and a ground area have each failed there.
