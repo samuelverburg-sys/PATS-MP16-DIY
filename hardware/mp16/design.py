@@ -523,3 +523,23 @@ DRC_ACCEPTED = [('courtyards_overlap', r'Footprint H\d+', r'Footprint SW\d+'),
                 ('copper_edge_clearance', r'Arc on Edge\.Cuts', r'Pad \d \[[^\]]*\] of D(1[0-7]|[1-9]) '),
                 # the Qwiic connector beside the right edge (Samuel 2026-11-04; copper clearance kept, see J6)
                 ('courtyards_overlap', r'Footprint J6\b', r'Footprint (D13|SW17)\b')]
+
+# Routing mode (Samuel 2026-11-05, for the record): how much is left to Freerouting.
+#   balanced    (default): ground fan-out, deterministic pre-route of short hops and critical nets, Freerouting
+#               (3 attempts + promote round), grid finish router.
+#   freerouting: no fan-out, no pre-route; Freerouting routes everything, ground included, with 20 passes
+#               (3 attempts + promote round); the finish router still closes what is left (logged apart).
+#   grid:       the deterministic grid router routes every net it can (any length, shortest first), then one
+#               Freerouting attempt for the rest, then the finish router.
+ROUTE_MODE = os.environ.get('MP16_ROUTE_MODE', 'balanced')
+if ROUTE_MODE == 'freerouting':
+    GND_FANOUT = False
+    PREROUTE_MM = 0
+    ROUTE_STAGES = [('all', ROUTE_STAGES[0][1] + ['Ground'])]
+    ROUTE_PASSES = 20
+    ROUTE_TIMEOUT = 3000
+elif ROUTE_MODE == 'grid':
+    PREROUTE_MM = 200.0
+    ROUTE_PARALLEL = 1
+    ROUTE_PROMOTE_PARALLEL = 0
+ROUTE_LOG_VARS = dict(ROUTE_LOG_VARS, route_mode=ROUTE_MODE)
