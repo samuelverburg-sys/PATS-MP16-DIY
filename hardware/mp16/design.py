@@ -269,8 +269,12 @@ add('F1', 'Device:Polyfuse', 'Fuse:Fuse_1206_3216Metric', '1.5A hold', {'1': 'VB
 add('U12', 'Power_Protection:USBLC6-2SC6', 'Package_TO_SOT_SMD:SOT-23-6', 'USBLC6-2SC6',
     {'1': 'USB_DP', '6': 'USB_DP', '3': 'USB_DN', '4': 'USB_DN', '2': 'GND', '5': 'VBUS'},
     (29.6, 5.0), 0, 'B', block='power', mpn='USBLC6-2SC6', lcsc='C2687116')
-res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (31.6, 7.4), 0, block='mcu', note='USB series, RP2040 design guide')
-res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 0, block='mcu')
+# Turned 180: the RP2040 pads on the right, facing the USB lane between C37 and C35. DN (pin 46) runs straight up
+# to R16, DP (pin 47, right of it) past R16's right end to R15; on the far side DP (upper) meets U12's upper pins.
+# Nested on both sides (run 20: at rotation 0 the RP2040 pads were on the far left, the DP pre-route wrapped round
+# C37 and walled pin 46 in, RP_USB_DN stayed open).
+res0402('R15', '27', 'USB_DP', 'RP_USB_DP', (31.6, 7.4), 180, block='mcu', note='USB series, RP2040 design guide')
+res0402('R16', '27', 'USB_DN', 'RP_USB_DN', (31.6, 8.4), 180, block='mcu')
 
 # ---------------------------------------------------------------------------
 # Charger + power path: BQ24074 (as the PATS audio board), USB in, VSYS out, 1S LiPo.
@@ -472,6 +476,9 @@ ROUTE_TIMEOUT = 1500  # s per Freerouting run; 4 layers took 55-130 s per pass (
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
 ROUTE_PROMOTE_PARALLEL = 1  # after the parallel attempts: the nets left open routed first, then the attempts again
 GND_FANOUT = True
+# C37's ground via to the left, towards C36's ground pad: the automatic spot (right, x 32.4) sat in the USB lane
+# above pins 46-47 and sent both USB pre-routes sideways along y 11.2, over the pins next to them (run 21).
+GND_FANOUT_VIA = {'C37.2': (-0.6, 0)}
 # Routed first, in this order, deterministically (tools/finish.py prejoin_short), up to PREROUTE_FIRST_MM
 # between pieces: the nets whose length and path matter most get the free board, not Freerouting's leftovers.
 PREROUTE_FIRST = ['USB_DP', 'USB_DN', 'RP_USB_DP', 'RP_USB_DN',  # USB: J3 -> ESD -> 27R -> RP2040
