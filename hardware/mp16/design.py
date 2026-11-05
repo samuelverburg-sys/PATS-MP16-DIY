@@ -376,7 +376,7 @@ cap('C58', '10u', '+3V3', 'GND', (56.5, 19.2), 90, block='power')
 add('U18', 'Regulator_Switching:MT3608', 'Package_TO_SOT_SMD:SOT-23-6', 'MT3608',
     {'5': 'VSW', '4': 'VSW', '1': 'SW_LED', '2': 'GND', '3': 'FB_LED', '6': None}, (73.2, 47.6), 90, 'B',
     block='power', mpn='MT3608', lcsc='C84817')
-cap('C60', '22u', 'VSW', 'GND', (73.4, 42.0), 90, block='power', big=True, lcsc='C45783')
+cap('C60', '22u', 'VSW', 'GND', (70.0, 48.4), 270, block='power', big=True, lcsc='C45783')  # between L1 and U18's VIN (run 23; was 7.7 mm away)
 add('L1', 'Device:L', 'Inductor_SMD:L_Coilcraft_XAL4040-XXX', '10uH', {'1': 'VSW', '2': 'SW_LED'},
     (66.0, 47.6), 0, 'B', block='power', mpn='XAL4040-103MEC', lcsc='C5144883',
     note='as the PATS audio board: 10 uH, Isat 3.0 A')
@@ -472,6 +472,8 @@ ROUTE_PARALLEL = 3  # three Freerouting runs at once (margins 0.02, 0, 0.04 mm),
 ROUTE_PASSES = 10  # passes per Freerouting run: it returns to its best result by pass 8 and then repeats
 ROUTE_TIMEOUT = 1500  # s per Freerouting run; 4 layers took 55-130 s per pass (run 14 timed out at 900)
 ROUTE_PROMOTE = {'escape': 1, '*': 0}
+OUTER_ONLY_CLASSES = ['Medium', 'Power']  # run 23: power on the outer layers (inner layers are thinner copper)
+POWER_MIN_WIDTH = 0.3  # run 23: grid routers' narrowest fallback for power nets (was 0.15)
 ROUTE_PROMOTE_PARALLEL = 1  # after the parallel attempts: the nets left open routed first, then the attempts again
 GND_FANOUT = True
 # Routed first, in this order, deterministically (tools/finish.py prejoin_short), up to PREROUTE_FIRST_MM

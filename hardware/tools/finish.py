@@ -16,6 +16,9 @@ import pcbnew
 MM = pcbnew.FromMM
 G = 0.05            # grid, mm
 TRACK_W = 0.15      # mm
+# Narrowest fallback width per net when its own width does not fit (set by build.py): power nets fell back to
+# 0.15 mm (MP-16 run 22: VBUS, VSYS, VBAT 0.5-5 mm at 0.15 at the charger); 0.3 mm still fits 0.5 mm-pitch pins.
+FALLBACK = {}
 VIA_D, VIA_DRILL = 0.6, 0.3
 B_COST = 2.0        # bottom layer step cost factor (keep the ground plane whole)
 VIA_COST = 40       # in grid steps (2 mm)
@@ -389,7 +392,7 @@ def _join(board, grid, net, widths, added):
         src = {F: in_copper(grid, a, F), B: in_copper(grid, a, B)}
         dst = {F: in_copper(grid, b, F), B: in_copper(grid, b, B)}
         path = None
-        for w in sorted({max((widths or {}).get(net, TRACK_W), TRACK_W), TRACK_W}, reverse=True):
+        for w in sorted({max((widths or {}).get(net, TRACK_W), FALLBACK.get(net, TRACK_W)), FALLBACK.get(net, TRACK_W)}, reverse=True):
             blk, vblk = build_blocks(grid, all_shapes, holes, net, w)
             path = astar(grid, blk, vblk, src, dst, F, B)
             if path:
@@ -478,7 +481,7 @@ def prejoin_short(board, clearance, widths=None, max_mm=3.0, skip=(), first=(), 
             src = {F: in_copper(grid, a, F), B: in_copper(grid, a, B)}
             dst = {F: in_copper(grid, b, F), B: in_copper(grid, b, B)}
             path = None
-            for w in sorted({max((widths or {}).get(net, TRACK_W), TRACK_W), TRACK_W}, reverse=True):
+            for w in sorted({max((widths or {}).get(net, TRACK_W), FALLBACK.get(net, TRACK_W)), FALLBACK.get(net, TRACK_W)}, reverse=True):
                 blk, vblk = build_blocks(grid, all_shapes, holes, net, w)
                 if inside.any():
                     blk[F] |= inside & ~src[F] & ~dst[F]

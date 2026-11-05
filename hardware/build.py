@@ -513,6 +513,11 @@ def freerouting(board, ignore, tag, edit=None, margin=None, run=True):
             return f'(keepout "" (polygon signal {km.group(2)}  ' + '  '.join(
                 f'{out[i]:g} {out[i + 1]:g}' for i in range(0, len(out), 2)) + ')'
         text = re.sub(r'\(keepout "" \(polygon (signal) ([0-9.]+)\s+([-0-9.\s]+)\)', grow, text)
+    # Power classes on the outer layers only (design.OUTER_ONLY_CLASSES): JLCPCB's inner layers are thinner
+    # copper (MP-16 run 22: VBUS ran 6.3 mm at 0.3 mm on In2.Cu)
+    for cls in getattr(design, 'OUTER_ONLY_CLASSES', []):
+        text = re.sub(r'(\(class ' + re.escape(cls) + r' [^\n]*\n\s*\(circuit\s*\n\s*\(use_via [^)]*\))',
+                      lambda m: m.group(1) + ' (use_layer F.Cu B.Cu)', text)
     if edit:
         text = edit(text)
     open(dsn, 'w').write(text)
@@ -550,6 +555,9 @@ def fr_run(job):
 
 def route():
     """Autoroute (see _route) and append the run to the build log (tools/buildlog.py)."""
+    import finish as _finish  # power nets never fall back below design.POWER_MIN_WIDTH in the grid routers
+    _finish.FALLBACK = {n: getattr(design, 'POWER_MIN_WIDTH', 0.15) for n in
+                        {x for p in design.parts for x in p.pins.values() if x} if net_class(n) in ('Medium', 'Power')}
     import time
     import buildlog
     rec = {'type': 'route', 'board': NAME, 'time': buildlog.now(), 'commit': buildlog.git_rev(),
