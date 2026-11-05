@@ -356,7 +356,7 @@ add('SW20', 'Switch:SW_SPDT', 'PATS:SW_SPDT_MK-12C02-G015', 'Power',
     {'1': 'VSYS', '2': 'PWR_ON', '3': None}, side='B', block='power', pin_targets=REV1['POWER_SWITCH'],
     mpn='G-Switch MK-12C02-G015', lcsc='C2911519', extra_pads={'SH': 'GND'},
     note='rev-1 part and position (enclosure slot at x 66.8)')
-res0402('R29', '100k', 'PWR_ON', 'GND', (73.4, 68.2), 0, block='power')
+res0402('R29', '100k', 'PWR_ON', 'GND', (74.35, 57.6), 90, block='power')  # above pin 3 (PWR_ON)
 add('U16', 'Power_Management:TPS22917DBV', 'Package_TO_SOT_SMD:SOT-23-6', 'TPS22917',
     {'1': 'VSYS', '6': 'VSW', '3': 'PWR_ON', '4': 'CT', '5': None, '2': 'GND'},
     (73.4, 61.0), 90, 'B', block='power', mpn='TPS22917DBVR', lcsc='C2681320', note='2 A load switch')
